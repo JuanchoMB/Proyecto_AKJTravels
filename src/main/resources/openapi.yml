@@ -1,0 +1,489 @@
+openapi: 3.0.0
+info:
+  title: API Bancaria - Billeteras Virtuales
+  version: 1.0.0
+  description: API para gestionar usuarios, billeteras virtuales y transacciones.
+
+paths:
+  /usuarios:
+    post:
+      summary: Registrar un nuevo usuario
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Identificación o correo ya registrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /usuarios/{id}:
+    put:
+      summary: Actualizar datos de un usuario
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Eliminar un usuario
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuario eliminado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /usuarios/{id}/password:
+    patch:
+      summary: Actualizar contraseña de un usuario
+      operationId: updateUserPassword
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdate'
+      responses:
+        '200':
+          description: Contraseña actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Contraseña inválida o igual a la anterior
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /billeteras:
+    post:
+      summary: Crear billetera virtual para un usuario
+      operationId: createWallet
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletRequest'
+      responses:
+        '201':
+          description: Billetera creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletResponse'
+        '400':
+          description: Usuario ya tiene billetera
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /billeteras/{id}/saldo:
+    get:
+      summary: Consultar saldo de una billetera
+      operationId: getWalletBalance
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Saldo obtenido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletBalance'
+
+  /billeteras/{id}/recargar:
+    post:
+      summary: Recargar una billetera
+      operationId: rechargeWallet
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RechargeRequest'
+      responses:
+        '200':
+          description: Recarga exitosa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletBalance'
+        '400':
+          description: Monto inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transacciones:
+    post:
+      summary: Realizar una transferencia entre billeteras
+      operationId: makeTransaction
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '201':
+          description: Transacción realizada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          description: Saldo insuficiente o datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /billeteras/{id}/transacciones:
+    get:
+      summary: Consultar todas las transacciones de una billetera
+      operationId: listTransactions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de transacciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionResponse'
+
+  /billeteras/{id}/transacciones/categoria/{categoria}:
+    get:
+      summary: Consultar transacciones por categoría
+      operationId: listTransactionsByCategory
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: categoria
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de transacciones por categoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionResponse'
+
+  /billeteras/{id}/transacciones/periodo:
+    get:
+      summary: Consultar transacciones por rango de fechas
+      operationId: listTransactionsByPeriod
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: inicio
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: fin
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de transacciones en el rango dado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionResponse'
+
+components:
+  schemas:
+    UserRegistration:
+      type: object
+      required: [nombre, direccion, identificacion, correo, contrasena]
+      properties:
+        nombre:
+          type: string
+        direccion:
+          type: string
+        identificacion:
+          type: string
+        correo:
+          type: string
+          format: email
+        contrasena:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        nombre:
+          type: string
+        direccion:
+          type: string
+        correo:
+          type: string
+          format: email
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        correo:
+          type: string
+        direccion:
+          type: string
+
+    PasswordUpdate:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [identificacion, contrasena]
+      properties:
+        identificacion:
+          type: string
+        contrasena:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "jwt_token_aqui"
+
+    WalletRequest:
+      type: object
+      required: [identificacionUsuario]
+      properties:
+        identificacionUsuario:
+          type: string
+
+    WalletResponse:
+      type: object
+      properties:
+        idBilletera:
+          type: string
+        identificacionUsuario:
+          type: string
+        saldo:
+          type: number
+
+    WalletBalance:
+      type: object
+      properties:
+        saldo:
+          type: number
+          example: 5000.0
+
+    RechargeRequest:
+      type: object
+      required: [monto]
+      properties:
+        monto:
+          type: number
+          minimum: 1
+
+    TransactionRequest:
+      type: object
+      required: [origen, destino, monto, categoria]
+      properties:
+        origen:
+          type: string
+        destino:
+          type: string
+        monto:
+          type: number
+        categoria:
+          type: string
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        origen:
+          type: string
+        destino:
+          type: string
+        monto:
+          type: number
+        categoria:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Operación realizada con éxito"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
