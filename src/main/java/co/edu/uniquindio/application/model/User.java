@@ -3,29 +3,23 @@ package co.edu.uniquindio.application.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Builder
 public class User {
     private String id;
-    private String username;
-    private String password;
+    private String name;
+    private String phone;
     private String email;
-    private String phoneNumber;
+    private String password;
+    private String photoUrl;
+    private LocalDate dateBirth;
+    private LocalDateTime createdAt;
     private Role role;
+    private UserStatus status;
 
-    public User(String id, String username, String password, String email, String phoneNumber, Role role) {
-
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
-
-
-    }
 
 }

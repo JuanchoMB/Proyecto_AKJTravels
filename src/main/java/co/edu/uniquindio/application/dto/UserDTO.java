@@ -1,6 +1,12 @@
 package co.edu.uniquindio.application.dto;
 
 import co.edu.uniquindio.application.model.Role;
+import lombok.Builder;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+@Builder
+
 
 public record UserDTO (
         String id,
@@ -8,4 +14,7 @@ public record UserDTO (
         String email,
         String photoUrl,
         Role role){
+
+    public UserDTO(String id, String name, String phone, String email, String photoUrl, LocalDate dateBirth, Role role) {
+    }
 }
