@@ -15,6 +15,4 @@ public record UserDTO (
         String photoUrl,
         Role role){
 
-    public UserDTO(String id, String name, String phone, String email, String photoUrl, LocalDate dateBirth, Role role) {
-    }
 }
