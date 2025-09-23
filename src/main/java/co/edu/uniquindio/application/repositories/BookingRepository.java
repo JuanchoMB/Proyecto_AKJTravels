@@ -1,17 +1,9 @@
 package co.edu.uniquindio.application.repositories;
 
-import co.edu.uniquindio.application.model.entity.Booking;
-import co.edu.uniquindio.application.model.entity.Place;
-import org.springframework.stereotype.Repository;
+import co.edu.uniquindio.application.model.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public interface BookingRepository extends JpaRepository<Booking, Long> {
-    List<Booking> findByGuest(User guest);
-    List<Booking> findByPlace(Place place);
-    boolean existsByPlaceAndCheckInLessThanEqualAndCheckOutGreaterThanEqual(
-            Place place, LocalDate end, LocalDate start);
+public interface BookingRepository extends JpaRepository<Booking, String> {
 }
