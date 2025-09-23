@@ -57,7 +57,7 @@ public class UserController {
 
     //cambiar contraseña
     @PatchMapping("/{id}")
-    public ResponseEntity<ResponseDTO<String>> update_password(@PathVariable String id, @Valid @RequestBody UpdatePasswordDTO updateUserDto) throws Exception {
+    public ResponseEntity<ResponseDTO<String>> update_password(@PathVariable String id, @Valid @RequestBody ChangePasswordDTO updateUserDto) throws Exception {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "contraseña actualizada :)"));
     }
 

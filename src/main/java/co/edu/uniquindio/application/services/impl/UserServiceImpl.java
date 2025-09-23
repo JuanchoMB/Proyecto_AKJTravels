@@ -1,102 +1,33 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
+import co.edu.uniquindio.application.dto.userDTO.ChangePasswordDTO;
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UpdateUserDto;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
-import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
+import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UserMapper;
 import co.edu.uniquindio.application.model.User;
+import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;
-    private final Map<String, User> userStore = new ConcurrentHashMap<>();
 
-    @Override
-    public void create(CreateUserDTO userDTO) throws Exception {
-
-        /*
-        if(isEmailDuplicated(userDTO.email())){
-            throw new ValueConflictException("El correo electrónico electronico ya está en uso.");
-        }
-
-        User newUser = userMapper.toEntity(userDTO);
-        // coframos la contraseña
-        newUser.setPassword(encode(newUser.getPassword()));
-
-        userStore.put(newUser.getId(), newUser);*/
-    }
-
-    @Override
-    public void edit(String id, UpdateUserDto userDTO) throws Exception {
-
-    }
-
-    private boolean isEmailDuplicated(String email){
-        return userStore.values().stream().anyMatch(
-                u -> u.getEmail().equalsIgnoreCase(email)
-        );
-    }
-
-
-    // para encriptar la contraseña
-    private String encode(String password){
-        var passwordEncoder = new BCryptPasswordEncoder();
-        return passwordEncoder.encode(password);
-    }
-
-
-    @Override
-    public void delete(String id) throws Exception {
-        User user = userStore.get(id);
-
-        if(user == null){
-            throw new ResourceNotFoundException("usuario no encontrado");
-        }
-        userStore.remove(id);
-    }
-
-    //devuelve datos del usuario según el id
-    @Override
-    public UserDTO get(String id) throws Exception {
-
-        User user = userStore.get(id);
-        if(user == null){
-            throw new ResourceNotFoundException("El usuario no existe");
-        }
-
-        return userMapper.toUserDTO(user);
-    }
-
-    @Override
-    public List<UserDTO> listAll() {
-        List<UserDTO> list = new ArrayList<>();
-
-        for (User user : userStore.values()) {
-            list.add(userMapper.toUserDTO(user));
-        }
-
-        return list;
-    }
-}
-
-    /*private final UserRepository userRepository;
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
 
     @Override
     public void create(CreateUserDTO userDTO) throws Exception {
         User newUser = userMapper.toEntity(userDTO);
 
-        if(existsByEmail(userDTO.email()) == false);{
+        if(!existsByEmail(userDTO.email()));{
             throw new ValueConflictException("El Email ya existe en el sistema");
         }
 
@@ -105,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean existsByEmail(String email) {
-        Optional <User> optionalUser = userRepository.findByEmail(email);
+        Optional<User> optionalUser = userRepository.findByEmail(email);
         return optionalUser.isPresent();
     }
 
@@ -122,32 +53,62 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO get(String id) throws Exception {
-        User user = userRepository.findById(id)
+        //Recuperación del usuario
+        Optional<User> userOptional = userRepository.findById(id);
 
+        //Validación del usuario
+        if (userOptional.isEmpty()) {
+            throw new Exception("Usuario no encontrado.");
+        }
+
+        //Transformación del usuario a DTO
+        return userMapper.toUserDTO(userOptional.get());
     }
 
     @Override
     public void delete(String id) throws Exception {
-        Optional<User> optionalUser = userRepository.findById(id);
+        //Recuperación del usuario
+        Optional<User> userOptional = userRepository.findById(id);
 
-        if(optionalUser.isEmpty()){
-
+        //Validación del usuario
+        if (userOptional.isEmpty()) {
+            throw new Exception("Usuario no encontrado.");
         }
 
+        //Eliminación del usuario
+        userRepository.delete(userOptional.get());
     }
 
-
     @Override
-    public void edit(String id, EditUserDTO userDTO) throws Exception {
+    public void edit(String id, UpdateUserDto userDTO) throws Exception {
 
-        User user = getUser(id);
-        userMapper.updateUserFromDto(userDTO, user);
+        //Recuperación del usuario
+        Optional<User> userOptional = userRepository.findById(id);
+
+        //Validación del usuario
+        if (userOptional.isEmpty()) {
+            throw new Exception("Usuario no encontrado.");
+        }
+
+        //Se obtiene el usuario que está dentro del Optional
+        User user = userOptional.get();
+
+        //Actualización de los datos del usuario
+        user.setName(userDTO.name());
+        user.setPhone(userDTO.phone());
+        user.setBirthDate(userDTO.BirthDay());
+        user.setPhotoUrl(userDTO.photoUrl());
+
+        //Almacenamiento del usuario
         userRepository.save(user);
     }
 
-    private User getUser ( Stiring id) throws Exception{
-        Optional<>
-
+    private User getUser ( String id) throws Exception{
+        Optional<User> userOptional = userRepository.findById(id);
+        if (userOptional.isEmpty()) {
+            throw new Exception("Usuario no encontrado.");
+        }
+        return userOptional.get();
     }
 
     public void changePassword(ChangePasswordDTO changePasswordDTO) throws Exception {
@@ -166,7 +127,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) throws Exception {
-        Optional<Pass>
+
     }
 
     @Override
@@ -177,6 +138,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> listAll() {
-        return List.of();
+        return userRepository.findAll()
+                .stream().map(userMapper::toUserDTO)
+                .toList();
     }
-}*/
+}

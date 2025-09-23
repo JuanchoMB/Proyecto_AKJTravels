@@ -1,11 +1,15 @@
-package co.edu.uniquindio.application.dto.userDTO;
+package co.edu.uniquindio.application.dto.hostDTO;
 
 import co.edu.uniquindio.application.model.enums.Role;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import org.hibernate.validator.constraints.Length;
+
 import java.time.LocalDate;
 
-public record CreateUserDTO(
+public record CreateHostDTO(
         @NotNull @Length(max = 100) String name,
         @Email String email,
         @Length(max = 10) String phone,
