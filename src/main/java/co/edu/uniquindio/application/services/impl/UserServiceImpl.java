@@ -1,7 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
-import co.edu.uniquindio.application.dto.userDTO.ChangePasswordDTO;
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UpdateUserDto;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
