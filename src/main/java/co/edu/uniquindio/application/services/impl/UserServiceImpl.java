@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
+import co.edu.uniquindio.application.dto.userDTO.ChangePasswordDTO;
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UpdateUserDto;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
@@ -113,11 +114,11 @@ public class UserServiceImpl implements UserService {
     public void changePassword(ChangePasswordDTO changePasswordDTO) throws Exception {
         User user = getUser(changePasswordDTO.id());
 
-        if(passwordEncoder.matches(changePasswordDTO.oldPassword().user.getPassword())){
+        if(passwordEncoder.matches(changePasswordDTO.oldPassword().equals(user.getPassword()))){
             throw new ValueConflictException("La contraseña no coincide con su contraseña actual");
 
         }
-        if(passwordEncoder.matches(changePasswordDTO.newPassword().user.getPassword())){
+        if(passwordEncoder.matches(changePasswordDTO.newPassword().equals(user.getPassword()))){
             throw new ValueConflictException("La contraseña no puede ser igual a la anterior");
         }
         user.setPassword(passwordEncoder.encode(changePasswordDTO.newPassword()));
