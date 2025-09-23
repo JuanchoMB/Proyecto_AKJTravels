@@ -1,10 +1,7 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
-import co.edu.uniquindio.application.dto.userDTO.ChangePasswordDTO;
-import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
-import co.edu.uniquindio.application.dto.userDTO.UpdateUserDto;
-import co.edu.uniquindio.application.dto.userDTO.UserDTO;
+import co.edu.uniquindio.application.dto.userDTO.*;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UserMapper;
 import co.edu.uniquindio.application.model.User;
@@ -129,6 +126,7 @@ public class UserServiceImpl implements UserService {
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) throws Exception {
 
     }
+
 
     @Override
     public void createHost(CreateHostDTO createHostDTO) throws Exception {
