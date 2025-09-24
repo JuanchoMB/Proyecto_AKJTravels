@@ -73,7 +73,7 @@ public class AccommodationServiceImpl implements AccommodationService {
         if(updateDTO.price() != null && updateDTO.price() != 0){
             accommodation.setPrice(updateDTO.price());
         }
-        if(updateDTO.country() != null && !updateDTO.country().isBlank()){
+        /*if(updateDTO.country() != null && !updateDTO.country().isBlank()){
             accommodation.getLocation().setCountry(updateDTO.country());
         }
         if(updateDTO.department() != null && !updateDTO.department().isBlank()){
@@ -90,7 +90,7 @@ public class AccommodationServiceImpl implements AccommodationService {
         }
         if(updateDTO.postalCode() != null && !updateDTO.postalCode().isBlank()){
             accommodation.getLocation().setPostalCode(updateDTO.postalCode());
-        }
+        }*/
         if(!updateDTO.pics_url().isEmpty()){
             accommodation.setPics_url(updateDTO.pics_url());
         }

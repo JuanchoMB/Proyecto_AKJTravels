@@ -1,52 +1,37 @@
 package co.edu.uniquindio.application.model;
 
-import co.edu.uniquindio.application.model.enums.State;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.*;
-import co.edu.uniquindio.application.model.enums.Role;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Entity
+@Table(name = "users")
+@Getter @Setter @NoArgsConstructor
 public class User {
 
     @Id
     private String id;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 120)
     private String email;
 
-    @Column(length = 15)
+    @Column(length = 20)
     private String phone;
 
-    @Column(nullable = false)
     private LocalDate birthDate;
-
-    @Column(nullable = false)
-    private String country;
-
-    @Column(nullable = false)
-    private Role role;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 200)
-    private String photoUrl;
-
-    @Column(nullable = false)
-    private State state;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
+    @PrePersist
+    public void prePersist() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }

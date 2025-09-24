@@ -2,20 +2,17 @@ package co.edu.uniquindio.application.mappers;
 
 import co.edu.uniquindio.application.dto.accommodationDTO.AccommodationDTO;
 import co.edu.uniquindio.application.model.Accommodation;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE
+)
 public interface ShowAccommodationMapper {
 
-    // Para el listado (resumen)
-    @Mapping(target = "photo_url", expression = "java(accommodation.getPics_url() != null && !accommodation.getPics_url().isEmpty() ? accommodation.getPics_url().get(0) : null)")
-    AccommodationDTO toAccommodationDTO(Accommodation accommodation);
-
-
-    // falta el average rating +++
-
-
-
+    @BeanMapping(ignoreByDefault = true)
+    AccommodationDTO show(Accommodation entity);
 }

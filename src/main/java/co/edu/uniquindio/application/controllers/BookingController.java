@@ -16,18 +16,19 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    //crear una reserva
+    // Crear una reserva para el alojamiento {id}
     @PostMapping("/{id}")
     public ResponseEntity<ResponseDTO<String>> create(@PathVariable String id, @Valid @RequestBody CreateBookingDTO createBookingDTO) throws Exception {
         bookingService.create(id, createBookingDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<String>(false, "reserva creada"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ResponseDTO<>(false, "reserva creada"));
     }
 
-    //eliminar una reserva (cambiar su estado)
+    // Eliminar (cambiar estado) de una reserva
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDTO<String>> delete(@PathVariable String id) throws Exception {
         bookingService.delete(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "reserva eliminada"));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResponseDTO<>(false, "reserva eliminada"));
     }
-
 }

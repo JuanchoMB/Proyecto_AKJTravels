@@ -4,6 +4,7 @@ import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.model.enums.AccommodationType;
 import co.edu.uniquindio.application.model.enums.Amenities;
 import jakarta.persistence.*;
+import jakarta.persistence.Embedded;
 import lombok.*;
 import javax.xml.stream.Location;
 import java.time.LocalDateTime;
@@ -19,9 +20,9 @@ public class Accommodation {
     @Id
     private String id;
 
-    @Column(nullable = false)
+    /*@Column(nullable = false)
     @Embedded
-    private Location location;
+    private Location location;*/
 
     @Column(nullable = false)
     private double price;

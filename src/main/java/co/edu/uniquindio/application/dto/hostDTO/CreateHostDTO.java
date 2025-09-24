@@ -1,22 +1,28 @@
 package co.edu.uniquindio.application.dto.hostDTO;
 
-import co.edu.uniquindio.application.model.enums.Role;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import org.hibernate.validator.constraints.Length;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDate;
+@Setter
+@Getter
+public class CreateHostDTO {
 
-public record CreateHostDTO(
-        @NotNull @Length(max = 100) String name,
-        @Email String email,
-        @Length(max = 10) String phone,
-        @Past @NotNull LocalDate birthDate,
-        @NotNull String country,
-        @NotBlank @Length(min = 7, max = 20) String password,
-        @Length(max = 300) String photoUrl,
-        @NotNull Role role
-) {
+    // Setters
+    // Getters
+    @NotBlank
+    private String userId;
+
+    // Campos opcionales de ejemplo (añade los reales cuando los tengas)
+    private String about;
+    private String phone;
+
+    public CreateHostDTO() {}
+
+    public CreateHostDTO(String userId, String about, String phone) {
+        this.userId = userId;
+        this.about = about;
+        this.phone = phone;
+    }
+
 }
