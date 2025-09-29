@@ -1,7 +1,7 @@
 package co.edu.uniquindio.application.mappers;
 
-import co.edu.uniquindio.application.dto.accommodationDTO.AccommodationDTO;
-import co.edu.uniquindio.application.model.Accommodation;
+import co.edu.uniquindio.application.dto.placeDTO.PlaceDTO;
+import co.edu.uniquindio.application.model.Place;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -14,5 +14,5 @@ import org.mapstruct.ReportingPolicy;
 public interface ShowAccommodationMapper {
 
     @BeanMapping(ignoreByDefault = true)
-    AccommodationDTO show(Accommodation entity);
+    PlaceDTO show(Place entity);
 }

@@ -1,4 +1,4 @@
-package co.edu.uniquindio.application.dto.accommodationDTO;
+package co.edu.uniquindio.application.dto.placeDTO;
 
 import java.time.LocalDate;
 

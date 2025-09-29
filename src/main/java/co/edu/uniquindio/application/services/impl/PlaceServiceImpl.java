@@ -1,40 +1,41 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dto.accommodationDTO.*;
+import co.edu.uniquindio.application.dto.bookingDTO.ListBookingsDTO;
+import co.edu.uniquindio.application.dto.placeDTO.*;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.AccommodationMapper;
 import co.edu.uniquindio.application.mappers.ShowAccommodationMapper;
-import co.edu.uniquindio.application.model.Accommodation;
+import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.enums.Amenities;
-import co.edu.uniquindio.application.services.AccommodationService;
+import co.edu.uniquindio.application.services.PlaceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.AbstractPersistable_;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
+
 @Service
 @RequiredArgsConstructor
-public class AccommodationServiceImpl implements AccommodationService {
+public class PlaceServiceImpl implements PlaceService {
 
-    private final AccommodationMapper accommodationMapper;
-    private final Map<String, Accommodation> accommodationStore = new ConcurrentHashMap<>();
+    private final AccommodationMapper placeMapper;
+    private final Map<String, Place> placeStore = new ConcurrentHashMap<>();
     private final ShowAccommodationMapper showAccommodationMapper;
 
     @Override
-    public void create(String id, CreateAccommodationDTO createAccommodationDTO) throws Exception {
-
-        if(verifyExistence(createAccommodationDTO)){
+    public void create(CreatePlaceDTO createPlaceDTO) throws Exception {
+        if(verifyExistence(createPlaceDTO)){
             throw new ValueConflictException("Ya existe este alojamiento");
         }
 
-        Accommodation accommodation1 = accommodationMapper.toEntity(createAccommodationDTO);
-        accommodationStore.put(id, accommodation1);
-
+        Place place1 = placeMapper.toEntity(createPlaceDTO);
+        placeStore.put(String.valueOf(AbstractPersistable_.id), place1);
     }
-
-    private boolean verifyExistence(CreateAccommodationDTO createAccommodationDTO) {
+    private boolean verifyExistence(CreatePlaceDTO createPlaceDTO) {
         /*
         for (Accommodation accommodation : accommodationStore.values()) {
             double distancia = GeoUtils.calcularDistancia(
@@ -54,71 +55,39 @@ public class AccommodationServiceImpl implements AccommodationService {
     }
 
 
-    //update
     @Override
-    public void edit(String id, UpdateDTO updateDTO) throws Exception {
-        Accommodation accommodation = accommodationStore.get(id);
-        if(accommodation == null){
+    public void edit(Long id, EditPlaceDTO placeDTO) throws Exception {
+
+        Place place = placeStore.get(id);
+        if(place == null){
             throw new ResourceNotFoundException("No se encontró el alojamiento");
         }
-        if(updateDTO.title() != null && !updateDTO.title().isBlank() ){
-            accommodation.setTitle(updateDTO.title());
-        }
-        if(updateDTO.description() != null){
-            accommodation.setDescription(updateDTO.description());
-        }
-        if(updateDTO.capacity() != 0){
-            accommodation.setCapacity(updateDTO.capacity());
-        }
-        if(updateDTO.price() != null && updateDTO.price() != 0){
-            accommodation.setPrice(updateDTO.price());
-        }
-        /*if(updateDTO.country() != null && !updateDTO.country().isBlank()){
-            accommodation.getLocation().setCountry(updateDTO.country());
-        }
-        if(updateDTO.department() != null && !updateDTO.department().isBlank()){
-            accommodation.getLocation().setDepartment(updateDTO.department());
-        }
-        if(updateDTO.city() != null && !updateDTO.city().isBlank()){
-            accommodation.getLocation().setCity(updateDTO.city());
-        }
-        if(updateDTO.neighborhood() != null && !updateDTO.neighborhood().isBlank()){
-            accommodation.getLocation().setNeighborhood(updateDTO.neighborhood());
-        }
-        if(updateDTO.street() != null && !updateDTO.street().isBlank()){
-            accommodation.getLocation().setStreet(updateDTO.street());
-        }
-        if(updateDTO.postalCode() != null && !updateDTO.postalCode().isBlank()){
-            accommodation.getLocation().setPostalCode(updateDTO.postalCode());
-        }*/
-        if(!updateDTO.pics_url().isEmpty()){
-            accommodation.setPics_url(updateDTO.pics_url());
-        }
-        if(!updateDTO.amenities().isEmpty()){
-            accommodation.setAmenities(updateDTO.amenities());
-        }
-        if(updateDTO.accommodationType() != null){
-            accommodation.setAccommodationType(updateDTO.accommodationType());
-        }
-
-        accommodationStore.put(id, accommodation);
+        placeStore.put(String.valueOf(id), place);
     }
 
+    @Override
+    public void delete(Long id) throws Exception {
+
+        Place place = placeStore.get(String.valueOf(id));
+        if(place == null){
+
+
+        }
+    }
 
     @Override
-    public void delete(String id) throws Exception {
-        /*
-        Accommodation accommodation = accommodationStore.get(id);
-        if(accommodation == null){
-            throw new ResourceNotFoundException("No existe el alojamiento");
-        }
-        for(Booking booking : accommodation.getBookings()){
-            // preguntar al profesor si checkIn o checkOut
-            if(booking.getCheckIn().isAfter(LocalDate.now())){
-                throw new ValueConflictException("tienes reservas futuras, no puedes hacer esto");
-            }
-        }
-        accommodationStore.remove(id);*/
+    public PlaceDTO getById(Long id) throws Exception {
+        return null;
+    }
+
+    @Override
+    public MetricsDTO getMetricsById(Long id) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<ItemPlaceDTO> getPlacesUser(String id) throws Exception {
+        return List.of();
     }
 
     @Override
@@ -130,7 +99,7 @@ public class AccommodationServiceImpl implements AccommodationService {
 
     // filtro de busqueda de los alojamientos
     @Override
-    public List<AccommodationDTO> search(ListAccommodationDTO listAccommodationDTO) throws Exception {
+    public List<PlaceDTO> search(ListPlaceDTO listPlaceDTO) throws Exception {
 
         /*
         // Si no viene ningún filtro, devuelvo todos directamente
@@ -176,13 +145,13 @@ public class AccommodationServiceImpl implements AccommodationService {
     @Override
     public List<Amenities> listAllAmenities(String id) throws Exception {
 
-        Accommodation accommodation = accommodationStore.get(id);
-        if(accommodation == null){
+        Place place = placeStore.get(id);
+        if(place == null){
             throw new ResourceNotFoundException("No se encontró el alojamiento");
 
         }
 
-        return accommodation.getAmenities();
+        return place.getAmenities();
     }
 
 
@@ -192,7 +161,7 @@ public class AccommodationServiceImpl implements AccommodationService {
     }
 
     @Override
-    public List<AccommodationDTO> listAllAccommodationsHost(String id) throws Exception {
+    public List<PlaceDTO> listAllPlacesHost(String id) throws Exception {
         return List.of();
     }
 }

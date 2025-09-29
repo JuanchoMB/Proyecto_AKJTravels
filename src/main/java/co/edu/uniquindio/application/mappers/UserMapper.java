@@ -1,30 +1,28 @@
 package co.edu.uniquindio.application.mappers;
 
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
+import co.edu.uniquindio.application.dto.userDTO.EditUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
 import co.edu.uniquindio.application.model.User;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 
 @Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        unmappedSourcePolicy = ReportingPolicy.IGNORE
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE // no moleste por campos que no existan
 )
 public interface UserMapper {
 
-    // Para crear entidad desde DTO (dejamos sin mapeos específicos por ahora)
-    @BeanMapping(ignoreByDefault = true)
-    User toEntity(CreateUserDTO createUserDTO);
+    // Crea la entidad a partir del DTO (solo mapea campos con el mismo nombre)
+    @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
+    @Mapping(target = "status", constant = "ACTIVE")
+    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "role", constant = "GUEST")
+    User toEntity(CreateUserDTO dto);
 
-    // Versión “neutral” de DTO (no setea campos hasta que arreglemos la entidad/DTO)
-    @BeanMapping(ignoreByDefault = true)
-    UserDTO toDTO(User user);
+    // Entidad -> DTO (deja que MapStruct mapee los que coinciden por nombre)
+    UserDTO toUserDTO(User user);
 
-    // Alias para compatibilidad con el servicio (UserServiceImpl usa userMapper::toUserDTO)
-    // Si más adelante necesitas un mapeo real, cambia la implementación a toDTO(user).
-    default UserDTO toUserDTO(User user) {
-        return toDTO(user);
-    }
+    // Actualización parcial (ignora nulls del DTO)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateUserFromDto(EditUserDTO dto, @MappingTarget User user);
 }

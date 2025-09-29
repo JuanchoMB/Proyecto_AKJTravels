@@ -2,10 +2,11 @@ package co.edu.uniquindio.application.dto.bookingDTO;
 
 import java.time.LocalDateTime;
 
-public record BookingDTO(
+public record ItemBookingDTO(
+        Long id,
         Long placeId,
         String placeName,
-        String placeAddress,
+        String placeCity,
         LocalDateTime createdAt,
         LocalDateTime checkIn,
         LocalDateTime checkOut,

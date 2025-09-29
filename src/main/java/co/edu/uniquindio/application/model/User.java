@@ -1,37 +1,50 @@
 package co.edu.uniquindio.application.model;
 
+import co.edu.uniquindio.application.model.enums.Role;
+import co.edu.uniquindio.application.model.enums.Status;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
-@Table(name = "users")
-@Getter @Setter @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
     private String id;
 
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 120)
-    private String email;
-
-    @Column(length = 20)
+    @Column(length = 15)
     private String phone;
 
-    private LocalDate birthDate;
+    @Column(length = 100, nullable = false, unique = true)
+    private String email;
 
-    @Column(nullable = false)
+    @Column(length = 200, nullable = false)
     private String password;
 
-    @PrePersist
-    public void prePersist() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
+    @Column(length = 200)
+    private String photoUrl;
+
+    @Column(nullable = false)
+    private LocalDate dateBirth;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
+
 }

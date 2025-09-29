@@ -1,8 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.*;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.mappers.BookingMapper;
 import co.edu.uniquindio.application.model.Booking;
@@ -26,6 +24,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public void create(CreateBookingDTO createBookingDTO) throws Exception {
+
+    }
+
+    @Override
     public void delete(String id) throws Exception {
         Booking booking = bookingStore.get(id);
         if (booking == null) {
@@ -35,21 +38,41 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public void changeStatus(Long id, StatusBookingDTO statusBookingDTO) throws Exception {
+
+    }
+
+    @Override
+    public BookingDTO getById(Long id) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<ItemBookingDTO> getBookings(Long placeId) throws Exception {
+        return List.of();
+    }
+
+    @Override
+    public List<ItemBookingDTO> getBookingsUser(String userId) throws Exception {
+        return List.of();
+    }
+
+    @Override
     public List<BookingDTO> listBookings(String id, SearchBookingDTO searchBookingDTO) throws Exception {
 
-        // añadimos a la lista todas las reservas cuyo id sea igual
+        /* añadimos a la lista todas las reservas cuyo id sea igual
         List<BookingDTO> list =  new ArrayList<>();
         for(Booking booking : bookingStore.values()) {
-            if(booking.getAccommodation().getId().equals(id)) {
+            if(booking.getPlace().getId().equals(id)) {
                 BookingDTO bookingDTO = bookingMapper.toBookingDTO(booking);
                 list.add(bookingDTO);
             }
         }
         // eliminamos los que tengan estado diferente (si es que viene estado)
-        if(searchBookingDTO.state() != null) {
+        if(searchBookingDTO.status() != null) {
             Iterator<BookingDTO> iterator = list.iterator();
             while(iterator.hasNext()) {
-                if(!Objects.equals(iterator.next().state(), searchBookingDTO.state())) {
+                if(!Objects.equals(iterator.next().state(), searchBookingDTO.status())) {
                     iterator.remove();
                 }
             }
@@ -85,5 +108,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return list;
+    }*/
+        return List.of();
     }
-}
+    }

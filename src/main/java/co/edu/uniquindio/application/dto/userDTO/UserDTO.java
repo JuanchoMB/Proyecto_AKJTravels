@@ -7,6 +7,6 @@ public record UserDTO(
         String id,
         String name,
         String email,
-        String phone,
-        String birthDate // ISO string
+        String photoUrl,
+        String role // ISO string
 ) {}

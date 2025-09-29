@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.model.enums;
 
-public enum State {
-    ACTIVE, INACTIVE
+public enum Status {
+    ACTIVE,
+    INACTIVE
 }

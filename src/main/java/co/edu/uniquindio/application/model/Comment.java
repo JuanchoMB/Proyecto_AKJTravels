@@ -26,7 +26,7 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Accommodation accommodation;
+    private Place place;
 
     @ManyToOne
     @JoinColumn(nullable = false)

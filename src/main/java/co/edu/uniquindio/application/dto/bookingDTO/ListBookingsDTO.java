@@ -1,14 +1,13 @@
-package co.edu.uniquindio.application.dto.accommodationDTO;
+package co.edu.uniquindio.application.dto.bookingDTO;
 
-import co.edu.uniquindio.application.model.enums.BookingState;
+import co.edu.uniquindio.application.model.enums.BookingStatus;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import java.time.LocalDateTime;
 
 public record ListBookingsDTO(
-        BookingState bookingState,
+        BookingStatus bookingState,
         @FutureOrPresent LocalDateTime checkIn,
         @Future LocalDateTime checkOut,
         int guest_number
-) {
-}
+) {}

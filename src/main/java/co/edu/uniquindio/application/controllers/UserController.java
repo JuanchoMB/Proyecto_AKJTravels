@@ -2,10 +2,9 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
-import co.edu.uniquindio.application.dto.hostDTO.HostDTO;
+import co.edu.uniquindio.application.dto.placeDTO.PlaceDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
-import co.edu.uniquindio.application.dto.accommodationDTO.AccommodationDTO;
-import co.edu.uniquindio.application.services.AccommodationService;
+import co.edu.uniquindio.application.services.PlaceService;
 import co.edu.uniquindio.application.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +20,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final AccommodationService accommodationService;
+    private final PlaceService placeService;
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDTO<String>> create(@PathVariable String id,
-                                                      @Valid @RequestBody UpdateUserDto updateUserDto) throws Exception {
+                                                      @Valid @RequestBody EditUserDTO updateUserDto) throws Exception {
         userService.edit(id, updateUserDto);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseDTO<>(false, "usuario actualizado"));
@@ -63,9 +62,10 @@ public class UserController {
     }
 
     @GetMapping("/{id}/accommodations/host")
-    public ResponseEntity<ResponseDTO<List<AccommodationDTO>>> listAccommodationHost(@PathVariable String id) throws Exception {
-        List<AccommodationDTO> list = accommodationService.listAllAccommodationsHost(id);
+    public ResponseEntity<ResponseDTO<List<PlaceDTO>>> listAccommodationHost(@PathVariable String id) throws Exception {
+        List<PlaceDTO> list = placeService.listAllPlacesHost(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResponseDTO<>(false, list));
     }
+
 }
