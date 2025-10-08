@@ -1,48 +1,73 @@
 package co.edu.uniquindio.application.model;
 
+import co.edu.uniquindio.application.model.enums.State;
+import co.edu.uniquindio.application.model.enums.PlaceType;
 import co.edu.uniquindio.application.model.enums.Amenities;
-import co.edu.uniquindio.application.model.enums.Service;
-import co.edu.uniquindio.application.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
-@Entity
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-@Builder
-@Getter @Setter
+@AllArgsConstructor
+@Entity
 public class Place {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, length = 150)
-    private String title;
+    @Column(nullable = false)
+    @Embedded
+    private Location location;
+
+    @Column(nullable = false)
+    private double price;
+
+    @ElementCollection
+    @CollectionTable(name = "pics_urls", // tabla intermedia
+                    joinColumns = @JoinColumn(name = "accommodation_id") // FK a Accommodation
+    )
+    @Column(name = "pics_url")
+    private List<String> pics_url;
 
     @Lob
     @Column(nullable = false)
     private String description;
 
+    @ElementCollection
+    @CollectionTable(joinColumns = @JoinColumn(name = "accommodation_id"))
+    @Column(name = "amenitie")
+    private List<Amenities> amenities;
+
+    @Column(nullable = false, length = 50)
+    private String title;
+
     @Column(nullable = false)
-    private float price;
+    private int capacity;
 
-    @ElementCollection
-    private List<String> images;
-
-    @ElementCollection
-    private Set<Service> services;
-
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    private State state;
+
     @Column(nullable = false)
-    private Status status;
+    private int totalRatings;
+
+
+    @Column(nullable = false)
+    private double averageRatings;
+
+    @Column(nullable = false)
+    private PlaceType placeType;
 
     @ManyToOne
-    private User host;
+    @JoinColumn(nullable = false)
+    private User user;
 
-    public List<Amenities> getAmenities() {
-        return List.of();
-    }
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "place")
+    private List<Comment> comments;
 }

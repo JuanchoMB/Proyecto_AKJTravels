@@ -1,20 +1,31 @@
 package co.edu.uniquindio.application.dto.placeDTO;
 
-import co.edu.uniquindio.application.model.enums.Service;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import co.edu.uniquindio.application.model.enums.PlaceType;
+import co.edu.uniquindio.application.model.enums.Amenities;
+
+import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.Length;
-
 import java.util.List;
-import java.util.Set;
 
-public record CreatePlaceDTO(
-        @NotBlank @Length(max = 150) String title,
-        @NotBlank String description,
-        @NotNull int maxGuests,
-        @NotNull float nightlyPrice,
-        @NotEmpty List<String> images,
-        @NotEmpty Set<Service> services
+public record CreatePlaceDTO(@NotBlank(message = "El título no puede estar vacío")
+                             @Length(min = 5, max = 25, message = "El título debe tener entre 5 y 25 caracteres")
+                             String title,
+                             @NotBlank(message = "La descripción no puede estar vacía")
+                             @NotBlank @Size(min = 20, max = 500, message = "La descripción debe tener entre 20 y 500 caracteres")
+                             String description,
+                             @NotNull @Positive double price,
+                             @NotEmpty @Size(min = 1, max = 10) List<String> picsUrl,
+                             @NotNull(message = "el tipo de alojamiento es obligatorio")
+                             PlaceType accommodationType,
+                             @Min(1) @Max(60) int capacity,
+                             @NotBlank @Length(max=30) String country,
+                             @NotBlank @Length(max=30) String department,
+                             @NotBlank @Length(max=30) String city,
+                             @Length(max = 20) String neighborhood //puede ser opcional
+                             , String street,
+                             @NotBlank @Pattern(regexp = "^[0-9A-Za-z]{4,10}$", message = "El código postal no es válido")
+                             String postalCode,
+                             @NotEmpty(message = "debe tener al menos 1 amenidad") List<Amenities> amenities,
+                             @NotNull float latitude,  @NotNull float longitude
 ) {
 }

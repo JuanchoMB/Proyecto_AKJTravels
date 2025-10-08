@@ -14,42 +14,52 @@ java {
     }
 }
 
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // para encriptar la contraseña
 
-
-    // Persistencia
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
-
-    // Para encriptar contraseñas
-    implementation 'org.springframework.security:spring-security-crypto'
-
-    // MapStruct
+    // de los mappers
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    //Para los emails
+    implementation 'org.simplejavamail:simple-java-mail:8.12.6'
+    implementation 'org.simplejavamail:batch-module:8.12.6'
+    // https://mvnrepository.com/artifact/org.simplejavamail/simple-java-mail
+    implementation("org.simplejavamail:simple-java-mail:8.12.6")
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    //para el servicio donde se alojarán las fotos
+    implementation 'com.cloudinary:cloudinary-http5:2.3.2'
 
-    testImplementation 'com.h2database:h2'
-    implementation 'com.h2database:h2'
+    // seguridad y JWT
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+
+    // Para los web Sockets
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }

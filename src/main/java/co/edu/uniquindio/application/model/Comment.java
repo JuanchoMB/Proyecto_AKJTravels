@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @Getter
+@Setter
 @Entity
 public class Comment {
 
@@ -19,7 +20,7 @@ public class Comment {
     private String comment;
 
     @Column(nullable = false)
-    private LocalDateTime commentDate;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private int rating;
@@ -27,6 +28,11 @@ public class Comment {
     @ManyToOne
     @JoinColumn(nullable = false)
     private Place place;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "booking_id", nullable = false)
+    private Booking booking;
+
 
     @ManyToOne
     @JoinColumn(nullable = false)

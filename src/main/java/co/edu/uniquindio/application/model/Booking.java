@@ -1,36 +1,41 @@
 package co.edu.uniquindio.application.model;
 
-import co.edu.uniquindio.application.model.enums.BookingStatus;
+import co.edu.uniquindio.application.model.enums.BookingState;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Getter
-@Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
+@Entity
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
-    private User guest;
+    @Column(nullable = false)
+    private LocalDateTime checkIn;
+
+    @Column(nullable = false)
+    private LocalDateTime checkOut;
+
+    @Column(nullable = false)
+    private int guest_number;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BookingState bookingState;
 
     @ManyToOne
     @JoinColumn(nullable = false)
     private Place place;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status;
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

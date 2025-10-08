@@ -2,24 +2,26 @@ package co.edu.uniquindio.application.mappers;
 
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
+import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.Booking;
-import org.mapstruct.BeanMapping;
+import co.edu.uniquindio.application.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
-@Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        unmappedSourcePolicy = ReportingPolicy.IGNORE
-)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface BookingMapper {
 
-    // No mapear campos hasta que la entidad Booking esté completa
-    @BeanMapping(ignoreByDefault = true)
-    Booking toEntity(CreateBookingDTO createBookingDTO);
+    @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
+    @Mapping(target = "bookingState", constant = "PENDING")
+    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(source = "place", target = "place")
+    @Mapping(source = "user", target = "user")
 
-    // Evitar mapeo a DTO por ahora (si alguien lo llama, retorna null para no compilar MapStruct)
-    default BookingDTO toBookingDTO(Booking booking) {
-        return null;
-    }
+
+    Booking toEntity(CreateBookingDTO createBookingDTO, Place place, User user);
+
+    BookingDTO toBookingDTO(Booking booking);
+
 }
+

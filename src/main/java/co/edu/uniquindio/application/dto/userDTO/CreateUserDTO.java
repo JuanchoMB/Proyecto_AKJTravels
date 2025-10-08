@@ -1,20 +1,27 @@
 package co.edu.uniquindio.application.dto.userDTO;
 
 import co.edu.uniquindio.application.model.enums.Role;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import org.hibernate.validator.constraints.Length;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-public record CreateUserDTO(
-        @NotBlank @Length(max = 100) String name,
-        @Length(max = 10) String phone,
-        @NotBlank @Length(max = 50) @Email String email,
-        @NotBlank @Length(min = 7, max = 20) String password,
-        @Length(max = 300) String photoUrl,
-        @NotNull @Past LocalDate dateBirth
+public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
+                            String name,
+                            @NotBlank(message = "Apellido requerido")
+                            String surname,
+                            @Email(message = "Email inválido")
+                            @NotBlank(message = "Email requerido")
+                            String email,
+                            @NotBlank(message = "Teléfono requerido")
+                            String phone,
+                            @NotNull(message = "Fecha de nacimiento requerida")
+                            LocalDate birthDate,
+                            @NotBlank(message = "País requerido")
+                            String country,
+                            String photoUrl,
+                            @NotBlank(message = "Contraseña requerida")
+                            @Size(min = 6, message = "Contraseña debe tener al menos 6 caracteres")
+                            String password,
+                            @NotNull Role role
 ) {
 }

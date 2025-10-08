@@ -6,23 +6,30 @@ import co.edu.uniquindio.application.dto.userDTO.UserDTO;
 import co.edu.uniquindio.application.model.User;
 import org.mapstruct.*;
 
-@Mapper(
-        componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE // no moleste por campos que no existan
-)
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface UserMapper {
 
-    // Crea la entidad a partir del DTO (solo mapea campos con el mismo nombre)
+    //convierte de dto a entidad y viceversa, crea automaticamente el id, estado y fecha de creación de la cuenta
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
-    @Mapping(target = "status", constant = "ACTIVE")
+    @Mapping(target = "state", constant = "ACTIVE")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "role", constant = "GUEST")
-    User toEntity(CreateUserDTO dto);
+    @Mapping(target = "isHost", constant = "false")
+    @Mapping(target = "description", ignore = true)
+    User toEntity(CreateUserDTO createUserDTO);
 
-    // Entidad -> DTO (deja que MapStruct mapee los que coinciden por nombre)
     UserDTO toUserDTO(User user);
 
-    // Actualización parcial (ignora nulls del DTO)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUserFromDto(EditUserDTO dto, @MappingTarget User user);
+
+    //metodo para actualizar usuario existente
+    //¿Por que no se puede usar beenMapping?
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "email", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "country", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "isHost", ignore = true)
+    @Mapping(target = "description", ignore = true)
+    void editUserFromDto(EditUserDTO editUserDTO, @MappingTarget User user);
+
 }

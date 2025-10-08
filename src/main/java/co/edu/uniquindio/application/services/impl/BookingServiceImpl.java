@@ -1,114 +1,145 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dto.bookingDTO.*;
-import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
+import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
+import co.edu.uniquindio.application.exceptions.*;
 import co.edu.uniquindio.application.mappers.BookingMapper;
 import co.edu.uniquindio.application.model.Booking;
+import co.edu.uniquindio.application.model.Place;
+import co.edu.uniquindio.application.model.User;
+import co.edu.uniquindio.application.model.enums.BookingState;
+import co.edu.uniquindio.application.repositories.PlaceRepository;
+import co.edu.uniquindio.application.repositories.BookingRepository;
+import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper bookingMapper;
-    private final Map<String, Booking> bookingStore = new ConcurrentHashMap<>();
+    private final BookingRepository bookingRepository;
+    private final PlaceRepository placeRepository;
+    private final UserRepository userRepository;
+    private final CurrentUserServiceImpl currentUserService;
 
     @Override
-    public void create(String id, CreateBookingDTO createBookingDTO) {
-        Booking booking = bookingMapper.toEntity(createBookingDTO);
-        bookingStore.put(id, booking);
+    public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception{
+
+        // vreifica que el checkIn no esté en pasado
+        if(createBookingDTO.checkIn().isBefore(LocalDateTime.now())){
+            throw new BadRequestException("el checkIn es invalido");
+        }
+
+        //verifica que el checkIn no esté despues del checkOut
+        if(createBookingDTO.checkIn().isAfter(createBookingDTO.checkOut())) {
+            throw new BadRequestException("Datos incorrectos o la fecha de checkIn está despues de la fecha de check Out");
+        }
+
+        // verifica si las fechas están disponibles
+        boolean avaliable = bookingRepository.existsOverlappingBooking(id, createBookingDTO.checkIn(), createBookingDTO.checkOut());
+        if(avaliable){
+            throw new ValueConflictException("fechas no disponibles");
+        }
+
+        //verifica que exista el alojamiento
+        Place place = placeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario"));
+
+
+        //la mapeamos y la guardamos en la DB
+        Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
+        bookingRepository.save(booking);
+
     }
 
-    @Override
-    public void create(CreateBookingDTO createBookingDTO) throws Exception {
-
-    }
-
+    // Cancelar una reserva
     @Override
     public void delete(String id) throws Exception {
-        Booking booking = bookingStore.get(id);
-        if (booking == null) {
-            throw new ResourceNotFoundException("No se puede eliminar el booking");
+        Optional<Booking> booking = bookingRepository.findById(id);
+        if (booking.isEmpty()) {
+            throw new ResourceNotFoundException("No existe esta reserva");
         }
-        bookingStore.remove(id);
-    }
 
-    @Override
-    public void changeStatus(Long id, StatusBookingDTO statusBookingDTO) throws Exception {
 
-    }
+        if(!Objects.equals(currentUserService.getCurrentUser(), booking.get().getUser().getId())) {
+            throw new ForbiddenException("No te pertenece esta reserva");
+        }
 
-    @Override
-    public BookingDTO getById(Long id) throws Exception {
-        return null;
-    }
-
-    @Override
-    public List<ItemBookingDTO> getBookings(Long placeId) throws Exception {
-        return List.of();
-    }
-
-    @Override
-    public List<ItemBookingDTO> getBookingsUser(String userId) throws Exception {
-        return List.of();
-    }
-
-    @Override
-    public List<BookingDTO> listBookings(String id, SearchBookingDTO searchBookingDTO) throws Exception {
-
-        /* añadimos a la lista todas las reservas cuyo id sea igual
-        List<BookingDTO> list =  new ArrayList<>();
-        for(Booking booking : bookingStore.values()) {
-            if(booking.getPlace().getId().equals(id)) {
-                BookingDTO bookingDTO = bookingMapper.toBookingDTO(booking);
-                list.add(bookingDTO);
+        if(booking.get().getBookingState().equals(BookingState.PENDING)){
+            LocalDateTime checkIn = booking.get().getCheckIn();
+            LocalDateTime now = LocalDateTime.now();
+            if(now.isBefore(checkIn.minusHours(48))){
+                booking.get().setBookingState(BookingState.CANCELED);
+                bookingRepository.save(booking.get());
+            }
+            else{
+                throw new ValueConflictException("solo puedes cancelar una reserva 48 horas antes de la fecha de check in");
             }
         }
-        // eliminamos los que tengan estado diferente (si es que viene estado)
-        if(searchBookingDTO.status() != null) {
-            Iterator<BookingDTO> iterator = list.iterator();
-            while(iterator.hasNext()) {
-                if(!Objects.equals(iterator.next().state(), searchBookingDTO.status())) {
-                    iterator.remove();
-                }
-            }
+        else {
+            throw new UnauthorizedException("no puedes cancelar esta reserva");
         }
-        // eliminamos los que tengan checkIn diferente (si es que viene checkIn)
-        if(searchBookingDTO.checkIn() != null) {
-            Iterator<BookingDTO> iterator = list.iterator();
-            while(iterator.hasNext()){
-                if(iterator.next().checkIn().isBefore(searchBookingDTO.checkIn())) {
-                    iterator.remove();
-                }
-            }
+    }
+
+    //lista de todas las reservas de un alojamiento (aplicando filtros y paginación)
+    @Override
+    public List<BookingDTO> listBookings(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception {
+
+        Optional<Place> place = placeRepository.findById(id);
+
+        if (searchBookingDTO.guest_number() != null && searchBookingDTO.guest_number() <= 0) {
+            throw new BadRequestException("el numero de huespedes no puede ser menor o 0");
         }
-        if(searchBookingDTO.checkOut() != null) {
-            Iterator<BookingDTO> iterator = list.iterator();
-            while(iterator.hasNext()) {
-                if(iterator.next().checkOut().isAfter(searchBookingDTO.checkOut())) {
-                    iterator.remove();
-                }
-            }
-        }
-        if(searchBookingDTO.guest_number() != null){
-            Iterator<BookingDTO> iterator = list.iterator();
-            while(iterator.hasNext()) {
-                if(!Objects.equals(iterator.next().guest_number(), searchBookingDTO.guest_number())) {
-                    iterator.remove();
-                }
-            }
+        return getBookingPlaceDTOS(id, page, searchBookingDTO, place.isEmpty(), place);
+    }
+
+    //lista de todas las reservas de un usuario (aplicando filtros y paginación)
+    @Override
+    public List<BookingDTO> listBookingsUser(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception {
+
+        Optional<User> user = userRepository.findById(id);
+        return getBookingUserDTOS(id, page, searchBookingDTO, user.isEmpty(), user);
+    }
+
+    @NotNull
+    private List<BookingDTO> getBookingUserDTOS(String id, int page, SearchBookingDTO searchBookingDTO, boolean empty, Optional<User> user) {
+        if (empty) {
+            throw new ResourceNotFoundException("No existe el usuario");
         }
 
-        if(list.isEmpty()) {
-            throw new ResourceNotFoundException("No tienes ninguna reserva que aplique");
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Booking> bookings = bookingRepository.findBookingsByUserWithFilters(id, searchBookingDTO, pageable);
+
+        return bookings.stream()
+                .map(bookingMapper::toBookingDTO)
+                .toList();
+    }
+
+    @NotNull
+    private List<BookingDTO> getBookingPlaceDTOS(String id, int page, SearchBookingDTO searchBookingDTO, boolean empty, Optional<Place> accommodation) {
+        if (empty) {
+            throw new ResourceNotFoundException("No existe el alojamiento");
         }
 
-        return list;
-    }*/
-        return List.of();
+        Pageable pageable = PageRequest.of(page, 10);
+        Page<Booking> bookings = bookingRepository.findBookingsByPlaceWithFilters(id, searchBookingDTO, pageable);
+
+        return bookings.stream()
+                .map(bookingMapper::toBookingDTO)
+                .toList();
     }
-    }
+}

@@ -2,37 +2,96 @@ package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dto.commentDTO.CommentDTO;
 import co.edu.uniquindio.application.dto.commentDTO.CreateCommentDTO;
+import co.edu.uniquindio.application.exceptions.ForbiddenException;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
-import co.edu.uniquindio.application.model.Place;
+import co.edu.uniquindio.application.mappers.CommentMapper;
+import co.edu.uniquindio.application.mappers.ListCommentsMapper;
+import co.edu.uniquindio.application.model.Booking;
+import co.edu.uniquindio.application.model.Comment;
+import co.edu.uniquindio.application.model.User;
+import co.edu.uniquindio.application.model.enums.BookingState;
+import co.edu.uniquindio.application.repositories.BookingRepository;
+import co.edu.uniquindio.application.repositories.CommentRepository;
+import co.edu.uniquindio.application.repositories.PlaceRepository;
+import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
-    private final Map<String, Place> commentStore = new ConcurrentHashMap<>();
+    private final CommentRepository commentRepository;
+    private final PlaceRepository placeRepository;
+    private final ListCommentsMapper listCommentsMapper;
+    private final CommentMapper commentMapper;
+    private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
-    //preguntar al profesor
+    //devuelve todos los comentarios de los alojamientos
     @Override
-    public List<CommentDTO> listComments(String id) throws Exception {
+    public List<CommentDTO> listComments(String id, int page) throws Exception {
 
-        Place place = commentStore.get(id);
-        if(place == null){
-            throw new ResourceNotFoundException("No se encontró el alojamiento");
+        Pageable pageable = PageRequest.of(page, 10);
+
+        Page<Comment> list = commentRepository.findAllByPlaceId(id, pageable);
+        if(list.isEmpty()){
+            throw new ResourceNotFoundException("no se encontraron comentarios");
+        }
+        return list.stream()
+                .map(listCommentsMapper::ToCommentDTO)
+                .toList();
+
+    }
+
+    // metodo para crear el comentario (posible cambio). Validar que el comentario solo se haga si la reserva pasó y que corresponda al alojamiento deonde se quedó el usuario
+    @Override
+    @Transactional
+    public void createComment(String bookingId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
+
+        // validar existencia de la reserva
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva"));
+
+        // validar que la reserva ya haya terminado
+        if (booking.getBookingState() != BookingState.COMPLETED) {
+            throw new ForbiddenException("No puedes comentar si tu reserva aún no ha finalizado");
         }
 
+        // validar existencia del usuario
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
 
+        //  que la reserva pertenezca al usuario
+        if (!booking.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("No puedes comentar una reserva que no te pertenece");
+        }
 
-        return List.of();
+        // validamos que no haya comentado antes en esta reserva
+        if (commentRepository.existsByBookingId(bookingId)) {
+            throw new ForbiddenException("Ya realizaste un comentario para esta reserva");
+        }
+
+        // crear comentario y asignar relaciones
+        Comment comment = commentMapper.toEntity(createCommentDTO);
+        comment.setBooking(booking);
+        comment.setPlace(booking.getPlace());
+        comment.setUser(user);
+
+        commentRepository.save(comment);
+
+        Double averageRating = commentRepository.findAverageRatingByPlaceId(booking.getPlace().getId(), null, null);
+        booking.getPlace().setAverageRatings(averageRating != null ? averageRating : 0.0);
+
+        placeRepository.save(booking.getPlace());
+
     }
 
-    @Override
-    public void createComment(String id, CreateCommentDTO createCommentDTO) throws Exception {
-
-    }
 }

@@ -1,469 +1,975 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: API Proyecto Final - Plataforma de Alojamientos
-  description: >
-    Especificación de la API REST para el proyecto final de Programación Avanzada.
-    Esto incluye la gestión de usuarios, anfitriones, alojamientos, reservas, comentarios
-    y métricas. Cumple con los lineamientos de OpenAPI 3.0.
-  version: "1.0.0"
+  title: API de Reservas y Alojamiento
+  version: 1.0.1
 servers:
-  - url: http://localhost:8080/api
-    description: Servidor local de desarrollo
-
-tags:
-  - name: Autenticación
-  - name: Usuarios
-  - name: Alojamientos
-  - name: Reservas
-  - name: Comentarios
-  - name: Métricas
+  - url: http://localhost:8080
 
 paths:
-  /auth/register:
+  /users:
     post:
-      tags: [Autenticación]
       summary: Registrar un nuevo usuario
+      operationId: registerUser
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsuarioRegistro"
+              $ref: '#/components/schemas/UserRegistration'
+            example:
+              name: "Samuel"
+              surname: "Andrés"
+              email: "samuel@mail.com"
+              phone: "3101234567"
+              birthDate: "2005-01-01"
+              country: "Colombia"
+              password: "MiPassword123"
       responses:
-        "201":
+        '200':
           description: Usuario registrado correctamente
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Datos inválidos
-        "409":
-          description: El usuario ya existe
-        "500":
-          description: Error interno del servidor
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: "1"
+                name: "Samuel"
+                surname: "Andrés"
+                email: "samuel@mail.com"
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: BAD REQUEST (Faltan datos que son requeridos)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ValidationError"
+                message: "Faltan campos requeridos: email, password"
+        '409':
+          description: CONFLICT (Correo repetido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "El correo ya está registrado"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
 
-  /auth/login:
-    post:
-      tags: [Autenticación]
-      summary: Iniciar sesión de usuario
+  /users/{id}:
+    put:
+      summary: Actualizar datos del usuario
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginRequest"
+              $ref: '#/components/schemas/UserUpdate'
+            example:
+              name: "Samuel"
+              surname: "Andrés"
+              phone: "3101234567"
+              profilePicture: "https://miapp.com/profile/samuel.png"
       responses:
-        "200":
+        '200':
+          description: Usuario actualizado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: "1"
+                name: "Samuel"
+                surname: "Andrés"
+                email: "samuel@mail.com"
+        '400':
+          description: BAD REQUEST (Faltan datos que son requeridos)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ValidationError"
+                message: "Formato de datos inválido"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Token ausente o inválido"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden"
+                message: "No tiene permisos para actualizar este usuario"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "NotFound"
+                message: "Usuario no encontrado"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+    patch:
+      summary: Añadir datos al usuario (ej. descripción)
+      operationId: addUserDetails
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDetails'
+            example:
+              description: "Me gusta viajar y hospedarme en lugares cerca del mar."
+      responses:
+        '200':
+          description: Datos cargados correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: "Descripción agregada correctamente"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe iniciar sesión"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Error en el servidor, intente más tarde"
+
+    delete:
+      summary: Eliminar usuario
+      operationId: deleteUser
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteUserRequest'
+            example:
+              password: "MiPassword123"
+      responses:
+        '200':
+          description: Usuario eliminado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: "Usuario eliminado correctamente"
+        '401':
+          description: Unauthorized (no envió token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Token no proporcionado"
+        '403':
+          description: Forbidden (el usuario no tiene permiso para eliminar otra cuenta)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden"
+                message: "No tiene permisos para eliminar este usuario"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "NotFound"
+                message: "Usuario no existe"
+        '409':
+          description: Conflict (no se puede eliminar porque tiene reservas activas)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "El usuario tiene reservas activas y no puede eliminarse"
+
+  /users/{id}/password:
+    patch:
+      summary: Cambiar contraseña (por decisión del usuario)
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdate'
+            example:
+              password: "NuevaClave123"
+      responses:
+        '200':
+          description: Contraseña actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: "Contraseña actualizada correctamente"
+        '400':
+          description: BAD REQUEST
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "La nueva contraseña no cumple los requisitos"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "No ha iniciado sesión"
+        '409':
+          description: CONFLICT (misma contraseña)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "La nueva contraseña no puede ser igual a la anterior"
+
+  /auth/login:
+    put:
+      summary: Iniciar sesión
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "samuel@mail.com"
+              password: "MiPassword123"
+      responses:
+        '200':
           description: Inicio de sesión exitoso
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "401":
-          description: Credenciales inválidas
-        "500":
-          description: Error interno del servidor
-
-  /usuarios/{id}:
-    get:
-      tags: [Usuarios]
-      summary: Obtener información de un usuario
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      responses:
-        "200":
-          description: Información del usuario
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                token: "eyJhbGciOiJI..."
+                expiresIn: 3600
+        '400':
+          description: BAD REQUEST (faltan datos que son requeridos)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Usuario"
-        "404":
-          description: Usuario no encontrado
-        "500":
-          description: Error interno
-    put:
-      tags: [Usuarios]
-      summary: Editar información de un usuario
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "Faltan campos: email o password"
+        '404':
+          description: NOT FOUND (usuario no encontrado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "NotFound"
+                message: "Usuario no encontrado"
+        '500':
+          description: INTERNAL SERVER ERROR (error inesperado en el servidor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /auth/recover:
+    patch:
+      summary: Recuperar contraseña (olvidada)
+      operationId: recoverPassword
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UsuarioUpdate"
+              $ref: '#/components/schemas/RecoverPasswordRequest'
+            example:
+              email: "samuel@mail.com"
+              verificationCode: "123456"
+              newPassword: "NuevaPassword123"
       responses:
-        "200":
-          description: Usuario actualizado correctamente
-        "400":
-          description: Datos inválidos
-        "404":
-          description: Usuario no encontrado
-        "500":
-          description: Error interno
-    delete:
-      tags: [Usuarios]
-      summary: Eliminar usuario
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      responses:
-        "204":
-          description: Usuario eliminado
-        "404":
-          description: Usuario no encontrado
-        "500":
-          description: Error interno
-
-  /alojamientos:
-    get:
-      tags: [Alojamientos]
-      summary: Listar todos los alojamientos
-      responses:
-        "200":
-          description: Lista de alojamientos
+        '200':
+          description: Contraseña actualizada con exito
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Alojamiento"
-        "500":
-          description: Error interno
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: "Contraseña actualizada con éxito"
+        '400':
+          description: Bad Request (faltan datos o formato inválido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "Formato inválido o datos faltantes"
+        '401':
+          description: Unauthorized (el código de verificación no es válido o expiró)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Código de verificación inválido o expirado"
+        '404':
+          description: Not Found (el email no está registrado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "NotFound"
+                message: "El email no está registrado"
+        '500':
+          description: INTERNAL SERVER ERROR (error inesperado del servidor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /reservations/{id}:
     post:
-      tags: [Alojamientos]
-      summary: Crear un alojamiento (solo anfitrión)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AlojamientoCreate"
-      responses:
-        "201":
-          description: Alojamiento creado
-        "400":
-          description: Datos inválidos
-        "403":
-          description: Usuario no autorizado
-        "500":
-          description: Error interno
-
-  /alojamientos/{id}:
-    get:
-      tags: [Alojamientos]
-      summary: Obtener un alojamiento por ID
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      responses:
-        "200":
-          description: Información del alojamiento
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Alojamiento"
-        "404":
-          description: Alojamiento no encontrado
-    put:
-      tags: [Alojamientos]
-      summary: Editar un alojamiento (solo anfitrión)
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AlojamientoUpdate"
-      responses:
-        "200":
-          description: Alojamiento actualizado
-        "400":
-          description: Datos inválidos
-        "403":
-          description: Usuario no autorizado
-        "404":
-          description: Alojamiento no encontrado
-    delete:
-      tags: [Alojamientos]
-      summary: Eliminar un alojamiento (solo anfitrión)
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      responses:
-        "204":
-          description: Alojamiento eliminado
-        "403":
-          description: Usuario no autorizado
-        "404":
-          description: Alojamiento no encontrado
-
-  /reservas:
-    post:
-      tags: [Reservas]
       summary: Crear una reserva
+      operationId: createReservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del alojamiento
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReservaCreate"
+              $ref: '#/components/schemas/ReservationRequest'
+            example:
+              checkIn: "2025-09-10"
+              checkOut: "2025-09-15"
+              guestNumber: 2
       responses:
-        "201":
-          description: Reserva creada correctamente
-        "400":
-          description: Datos inválidos
-        "404":
-          description: Alojamiento no encontrado
-        "500":
-          description: Error interno
+        '201':
+          description: Created (reserva creada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+              example:
+                id: "987"
+                checkIn: "2025-09-10"
+                checkOut: "2025-09-15"
+                guestNumber: 2
+                status: "confirmed"
+        '400':
+          description: Bad request (numero de huespedes no permitido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "Numero de huespedes no permitido"
+        '401':
+          description: Unauthorized (no autenticado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe iniciar sesión"
+        '409':
+          description: Conflict (alojamiento ocupado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Conflict"
+                message: "El alojamiento ya está ocupado en esas fechas"
+        '500':
+          description: INTERNAL SERVER ERROR (error inesperado del servidor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+    patch:
+      summary: Cancelar reserva
+      operationId: cancelReservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reserva cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: "Reserva cancelada exitosamente"
+        '400':
+          description: BAD REQUEST (tiempo de cancelacion vencido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "Ya no puedes cancelar: requiere cancelación con 48 horas de anticipación"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe iniciar sesión"
+        '500':
+          description: INTERNAL SERVER ERROR (error inesperado en el servidor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /reservations/{id}/status:
     get:
-      tags: [Reservas]
-      summary: Listar todas las reservas de un usuario
+      summary: Consultar el estado de una reserva
+      operationId: getReservationStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
-        "200":
+        '200':
+          description: El estado de tu reserva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+              example:
+                id: "987"
+                checkIn: "2025-09-10"
+                checkOut: "2025-09-15"
+                guestNumber: 2
+                status: "pending"
+        '204':
+          description: NO CONTENT (no tienes reservas)
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe iniciar sesión para consultar la reserva"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /users/{id}/reservations:
+    get:
+      summary: Ver historial de reservas de un usuario
+      operationId: getUserReservations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reservationStatus
+          in: query
+          schema:
+            type: string
+        - name: checkIn
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: checkOut
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: guestNumber
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
           description: Lista de reservas
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Reserva"
-        "500":
-          description: Error interno
-
-  /reservas/{id}/cancelar:
-    put:
-      tags: [Reservas]
-      summary: Cancelar una reserva
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-      responses:
-        "200":
-          description: Reserva cancelada correctamente
-        "404":
-          description: Reserva no encontrada
-        "403":
-          description: No autorizado a cancelar esta reserva
-        "500":
-          description: Error interno
-
-  /comentarios:
-    post:
-      tags: [Comentarios]
-      summary: Crear un comentario sobre un alojamiento
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ComentarioCreate"
-      responses:
-        "201":
-          description: Comentario agregado
-        "400":
-          description: Datos inválidos
-        "404":
-          description: Alojamiento no encontrado
-        "500":
-          description: Error interno
-
-  /metricas:
-    get:
-      tags: [Métricas]
-      summary: Obtener métricas generales de la aplicación
-      responses:
-        "200":
-          description: Métricas del sistema
+                  $ref: '#/components/schemas/ReservationResponse'
+              example:
+                - id: "987"
+                  checkIn: "2025-09-10"
+                  checkOut: "2025-09-15"
+                  guestNumber: 2
+                  status: "finished"
+        '204':
+          description: NO CONTENT (no tienes reservas)
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Metricas"
-        "500":
-          description: Error interno
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe autenticarse"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /hosts/{id}/reservations:
+    get:
+      summary: Ver reservas de un alojamiento de un anfitrión
+      operationId: getHostReservations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reservationStatus
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: guestNumber
+          in: query
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            example:
+              reservationStatus: "awaiting"
+              checkIn: "20/08/2025"
+              checkOut: "03/09/2025"
+              guestNumber: "3"
+      responses:
+        '200':
+          description: Lista de reservas del alojamiento
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationResponse'
+              example:
+                - id: "101"
+                  checkIn: "2025-09-01"
+                  checkOut: "2025-09-05"
+                  guestNumber: 2
+                  status: "confirmed"
+        '204':
+          description: NO CONTENT (no tienes reservas)
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                message: "Debe autenticarse como anfitrión"
+        '500':
+          description: INTERNAL SERVER ERROR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
+
+  /places:
+    get:
+      summary: Buscar alojamientos disponibles
+      operationId: searchPlaces
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: checkIn
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: checkOut
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de alojamientos disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlaceResponse'
+              example:
+                - id: "10"
+                  city: "medellin"
+                  name: "Apartamento en Laureles"
+                  capacity: 3
+                  available: true
+        '400':
+          description: Bad Request (error en filtros, fecha de check-in > check-out)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "BadRequest"
+                message: "La fecha de check-in debe ser anterior a check-out"
+        '500':
+          description: INTERNAL SERVER ERROR (falla inesperada en el servidor)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "ServerError"
+                message: "Ocurrió un error inesperado"
 
 components:
   schemas:
-    UsuarioRegistro:
+    UserRegistration:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          description: Nombre del usuario
+        surname:
+          type: string
+          description: Apellido del usuario
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        country:
+          type: string
+        password:
+          type: string
+          minLength: 8
+
+    UserUpdate:
       type: object
       properties:
-        nombre:
+        name:
           type: string
+        surname:
+          type: string
+        phone:
+          type: string
+        profilePicture:
+          type: string
+
+    UserDetails:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+
+    DeleteUserRequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+
+    PasswordUpdate:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
         email:
           type: string
         password:
           type: string
-        rol:
-          type: string
-          enum: [usuario, anfitrion]
-      required: [nombre, email, password, rol]
 
-    UsuarioUpdate:
+    RecoverPasswordRequest:
       type: object
+      required:
+        - email
+        - verificationCode
+        - newPassword
       properties:
-        nombre:
-          type: string
         email:
           type: string
-        password:
+        verificationCode:
+          type: string
+        newPassword:
           type: string
 
-    Usuario:
+    ReservationRequest:
+      type: object
+      required:
+        - checkIn
+        - checkOut
+        - guestNumber
+      properties:
+        checkIn:
+          type: string
+          format: date
+        checkOut:
+          type: string
+          format: date
+        guestNumber:
+          type: integer
+
+    ReservationResponse:
       type: object
       properties:
         id:
           type: string
-        nombre:
+        checkIn:
           type: string
-        email:
+          format: date
+        checkOut:
           type: string
-        rol:
+          format: date
+        guestNumber:
+          type: integer
+        status:
           type: string
-          enum: [usuario, anfitrion]
+          enum: [pending, confirmed, cancelled, finished]
 
-    LoginRequest:
+    PlaceResponse:
       type: object
       properties:
+        id:
+          type: string
+        city:
+          type: string
+        name:
+          type: string
+        capacity:
+          type: integer
+        available:
+          type: boolean
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
         email:
           type: string
-        password:
+        country:
           type: string
-      required: [email, password]
+        phone:
+          type: string
 
     AuthResponse:
       type: object
       properties:
         token:
           type: string
-        usuario:
-          $ref: "#/components/schemas/Usuario"
+        expiresIn:
+          type: integer
 
-    AlojamientoCreate:
+    SuccessResponse:
       type: object
       properties:
-        titulo:
+        message:
           type: string
-        descripcion:
-          type: string
-        ubicacion:
-          type: string
-        precioPorNoche:
-          type: number
-        capacidad:
-          type: integer
-      required: [titulo, descripcion, ubicacion, precioPorNoche, capacidad]
 
-    AlojamientoUpdate:
+    ErrorResponse:
       type: object
       properties:
-        titulo:
+        error:
           type: string
-        descripcion:
+        message:
           type: string
-        ubicacion:
-          type: string
-        precioPorNoche:
-          type: number
-        capacidad:
-          type: integer
 
-    Alojamiento:
-      allOf:
-        - $ref: "#/components/schemas/AlojamientoCreate"
-        - type: object
-          properties:
-            id:
-              type: string
-            anfitrionId:
-              type: string
-
-    ReservaCreate:
-      type: object
-      properties:
-        alojamientoId:
-          type: string
-        fechaInicio:
-          type: string
-          format: date
-        fechaFin:
-          type: string
-          format: date
-      required: [alojamientoId, fechaInicio, fechaFin]
-
-    Reserva:
-      allOf:
-        - $ref: "#/components/schemas/ReservaCreate"
-        - type: object
-          properties:
-            id:
-              type: string
-            usuarioId:
-              type: string
-            estado:
-              type: string
-              enum: [activa, cancelada, completada]
-
-    ComentarioCreate:
-      type: object
-      properties:
-        alojamientoId:
-          type: string
-        usuarioId:
-          type: string
-        texto:
-          type: string
-        calificacion:
-          type: integer
-          minimum: 1
-          maximum: 5
-      required: [alojamientoId, usuarioId, texto, calificacion]
-
-    Comentario:
-      allOf:
-        - $ref: "#/components/schemas/ComentarioCreate"
-        - type: object
-          properties:
-            id:
-              type: string
-            fecha:
-              type: string
-              format: date-time
-
-    Metricas:
-      type: object
-      properties:
-        totalUsuarios:
-          type: integer
-        totalAlojamientos:
-          type: integer
-        totalReservas:
-          type: integer
-        totalComentarios:
-          type: integer
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

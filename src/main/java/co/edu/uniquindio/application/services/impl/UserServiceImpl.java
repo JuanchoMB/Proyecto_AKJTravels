@@ -1,179 +1,184 @@
 package co.edu.uniquindio.application.services.impl;
 
-import co.edu.uniquindio.application.dto.hostDTO.CreateHostDTO;
+import co.edu.uniquindio.application.dto.authDTO.LoginDTO;
+import co.edu.uniquindio.application.dto.authDTO.TokenDTO;
+import co.edu.uniquindio.application.dto.hostDTO.HostDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
-import co.edu.uniquindio.application.exceptions.*;
+import co.edu.uniquindio.application.exceptions.BadRequestException;
+import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
+import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.UserMapper;
+import co.edu.uniquindio.application.model.HostProfile;
 import co.edu.uniquindio.application.model.User;
+import co.edu.uniquindio.application.model.enums.Role;
+import co.edu.uniquindio.application.model.enums.State;
+import co.edu.uniquindio.application.repositories.HostRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
+import co.edu.uniquindio.application.security.JWTUtils;
+import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.UserService;
+import co.edu.uniquindio.application.validators.ImageValidators;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
-    private final Map<String, User> userStore = new ConcurrentHashMap<>();
-    private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-
-
-    private boolean isEmailDuplicated(String email){
-        return userRepository.findByEmail(email).isPresent();
-    }
-
-
-    @Override
-    public TokenDTO login(LoginDTO loginDTO) throws Exception {
-
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-        // Recuperar el usuario desde la base de datos
-        User user = getUserByEmail(loginDTO.email());
-
-        // Verificar si la contraseña es correcta usando el PasswordEncoder
-        if(!passwordEncoder.matches(loginDTO.password(), user.getPassword())){
-            throw new NotFoundException("El usuario no existe");
-        }
-
-        return new TokenDTO("OK");
-    }
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    //private final BCryptPasswordEncoder cryptPasswordEncoder;
+    private final JWTUtils jwtUtils;
+    private final HostRepository hostRepository;
+    private final ImageValidators  imageValidators;
 
     @Override
     @Transactional
     public void create(CreateUserDTO createUserDTO) throws Exception {
 
-        Optional<User> findUser = userRepository.findByEmail(createUserDTO.email());
-
-        if (findUser.isPresent()) {
-            throw new ValueConflictException("El email ya existe");
+        //Verificar si el email ya existe
+        if (userRepository.existsByEmail(createUserDTO.email())) {
+            throw new ValueConflictException("El email ya está registrado");
         }
-
+        // Crear usuario usando MapStruct
         User user = userMapper.toEntity(createUserDTO);
+
+        // Encriptar contraseña con BCrypt (IMPORTANTE)
+        user.setPassword(encode(createUserDTO.password()));
+
+        //Guardar en BD
         userRepository.save(user);
 
-    }
 
-    private User getUserById(String id) throws Exception{
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado."));
-    }
+        if(createUserDTO.role() == Role.HOST){
+            HostProfile host = new HostProfile();
+            host.setUser(user);
+            host.setId(user.getId());
+            hostRepository.save(host);
 
-    private User getUserByEmail(String email) throws Exception{
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Usuario no encontrado."));
-    }
-
-
-
-    @Override
-    @Transactional
-    public void edit(String id, EditUserDTO userDTO) throws Exception {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
-        // TODO: copiar campos desde userDTO -> user
-        userRepository.save(user);
-
-    }
-
-    private boolean isEmailDuplicate(String email) {
-        return userStore.values().stream().anyMatch(
-                u -> u.getEmail().equalsIgnoreCase(email)
-        );
-    }
-
-    private String encode(String password) {
-        var passwordEncoder = new BCryptPasswordEncoder();
-        return passwordEncoder.encode(password);
-    }
-
-    @Override
-    @Transactional
-    public void delete(String id) throws Exception {
-        User user = userStore.get(id);
-        if(user == null) {
-            throw new ResourceNotFoundException("Usuario no encontrado");
         }
-        userStore.remove(id);
+
     }
 
     @Override
     public UserDTO get(String id) throws Exception {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            return userMapper.toUserDTO(user.get());
-        }
-        throw new ResourceNotFoundException("Usuario no encontrado");
-    }
+        Optional<User> optionalUser = userRepository.findById(id);
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserDTO> listAll() {
-        List<UserDTO> list = new ArrayList<>();
-
-        for (User user : userStore.values()) {
-            list.add(userMapper.toUserDTO(user));
-        }
-        return list;
-    }
-
-
-
-
-    @Override
-    @Transactional
-    public void resetPassword(ResetPasswordDTO resetPasswordDTO) throws Exception {
-        // Esqueleto mínimo; implementa tu lógica real de reset (token/código, etc.)
-        // Por ahora no hace nada para que compile.
-    }
-
-    @Override
-    @Transactional
-    public void createHost(CreateHostDTO createHostDTO) throws Exception {
-
-    }
-
-    private final UserRepository repo;
-
-
-    @Override
-    public UserDTO getById(String id) throws NotFoundException {
-        User u = repo.findById(id).orElseThrow(() -> new NotFoundException("Usuario no encontrado"));
-        return userMapper.toUserDTO(u);
-    }
-
-    @Override
-    public void changePassword(ChangePasswordDTO changePasswordDTO) throws Exception {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-
-        // Recuperar el usuario desde la base de datos
-        User user = getUserById(changePasswordDTO.idUser());
-
-        // Verificar que la contraseña actual coincida
-        if(!passwordEncoder.matches(changePasswordDTO.oldPassword(), user.getPassword())){
-            throw new ValidationException("La contraseña actual es incorrecta.");
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("Usuario no encontrado");
         }
 
-        // Verificar que la nueva contraseña sea diferente a la actual
-        if(changePasswordDTO.oldPassword().equals(changePasswordDTO.newPassword())){
-            throw new ValueConflictException("La nueva contraseña no puede ser igual a la actual.");
+        return userMapper.toUserDTO(optionalUser.get());
+    }
+
+    @Override
+    public void edit(String id, EditUserDTO editUserDto) throws Exception {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        // Validacion foto de perfil
+        if (editUserDto.photoUrl() != null && !imageValidators.isValid(editUserDto.photoUrl())) {
+            throw new ValueConflictException("El formato de imagen no es valido");
         }
-
-        // Actualizar la contraseña
-        user.setPassword( passwordEncoder.encode(changePasswordDTO.newPassword()) );
-
-        // Guardar el usuario con la nueva contraseña
+        userMapper.editUserFromDto(editUserDto, user);
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void addHostData(String id, HostDTO hostDTO) throws Exception {
+
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        HostProfile host = hostRepository.findByUserId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Perfil de anfitrión no encontrado"));
+
+        if(hostDTO.description() == null || hostDTO.description().isBlank()){
+            throw new ValueConflictException("Descripcion requerida para ser anfitrion");
+        }
+        user.setDescription(hostDTO.description().trim());
+        //Agreagr el atributo de lista de documentos al host
+        host.setDocuments(hostDTO.legal_documents());
+        user.setIsHost(true);
+
+        // actualizamos en la base de datos
+        userRepository.save(user);
+        hostRepository.save(host);
 
     }
 
+    @Override
+    public void delete(String id, DeleteUserDTO deleteUserDTO) throws Exception {
+        Optional<User> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("Usuario no encontrado");
+        }
+
+        if(!passwordEncoder.matches(deleteUserDTO.password(), optionalUser.get().getPassword())){
+            throw new ValueConflictException("La contraseña es incorrecta");
+        }
+
+        User user = optionalUser.get();
+        user.setState(State.INACTIVE);
+        userRepository.save(user);
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+    }
+
+    @Override
+    public TokenDTO login(LoginDTO loginDTO) throws Exception {
+        Optional<User> optionalUser = userRepository.findByEmail(loginDTO.email());
+
+        if(optionalUser.isEmpty()){
+            throw new ResourceNotFoundException("El usuario no existe");
+        }
+
+        User user = optionalUser.get();
+
+        // Verificar si la contraseña es correcta usando el PasswordEncoder
+        if(!passwordEncoder.matches(loginDTO.password(), user.getPassword())){
+            throw new ResourceNotFoundException("El usuario no existe");
+        }
+
+        String token = jwtUtils.generateToken(user.getId(), createClaims(user));
+        System.out.println(user.getId() + "" + user.getRole().toString() );
+        return new TokenDTO(token);
+    }
+
+    @Override
+    public void changePassword(String id,  EditPasswordDTO editPasswordDTO) throws Exception {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("Usuario no encontrado");
+        }
+        User user = optionalUser.get();
+        if(!passwordEncoder.matches(editPasswordDTO.old_password(), user.getPassword())){
+            throw new BadRequestException("la contraseña no coincide");
+        }
+
+        // se actualiza la contraseña y guardamos el cambio
+        user.setPassword(passwordEncoder.encode(editPasswordDTO.new_password()));
+        userRepository.save(user);
+    }
+
+    private Map<String, String> createClaims(User user){
+        return Map.of(
+                "email", user.getEmail(),
+                "name", user.getName(),
+                "role", "ROLE_"+user.getRole().name()
+        );
+    }
+
+    // para encriptar la contraseña
+    private String encode(String password){
+        var passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.encode(password);
+    }
 }

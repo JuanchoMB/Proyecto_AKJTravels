@@ -53,11 +53,11 @@ Content-Type: application/json
 //registrarse
 
 {
-  "name": "kevyn",
-  "email": "kevynthebestrga@gmail.com",
+  "name": "Alex",
+  "email": "Alexthebestrga@gmail.com",
   "phone": "3102381183",
   "dateBirth": "2005-02-23",
-  "password": "12345678",
+  "password": "123456789",
   "photoUrl": "dfdsfdsfsdfsdfs"
 }
 
@@ -66,7 +66,7 @@ GET http://localhost:8080/api/users/list
 //devuelve una lista de todos los usuarios
 
 ###
-PUT http://localhost:8080/api/users/12
+PUT http://localhost:8080/api/users/
 Content-Type: application/json
 //editar datos del usuario
 
@@ -77,7 +77,7 @@ Content-Type: application/json
 }
 
 ###
-DELETE http://localhost:8080/api/users/12
+DELETE http://localhost:8080/api/users/eliminar
 Content-Type: application/json
 //eliminar usuario
 

@@ -4,18 +4,20 @@ GET https://examples.http-client.intellij.net/get
 
 
 ###
-PATCH http://localhost:8080/api/users/123/password
+PATCH http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a
 Content-Type: application/json
+Authorization: Bearer {{token}}
 //cambiar contraseña
 
 {
-  "old_password": "233455665",
+  "old_password": "perroGato123",
   "new_password": "3435555555"
 }
 
 ###
-PUT http://localhost:8080/api/users/123/host
+PUT http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/host
 Content-Type: application/json
+Authorization: Bearer {{token}}
 //añadir descripcion y/o documentos legales
 
 {
@@ -32,172 +34,264 @@ Content-Type: application/json
 // login
 
 {
-  "email": "kevynram@gmail.com",
-  "password": "12345"
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "password": "perroGato123"
 }
 
+> {% client.global.set("token", response.body.message.token); %}
+
+
 ###
-PATCH http://localhost:8080/api/auth/recover
+POST http://localhost:8080/api/auth/forgot-password
+Content-Type: application/json
+// solicitar codigo para cambiar la contraseña
+
+{
+  "email": "kevyn.ramirezg@uqvirtual.edu.co"
+}
+
+
+###
+PATCH http://localhost:8080/api/auth/reset-password
 Content-Type: application/json
 //cambiar contraseña olvidada
 
 {
-  "email": "kevynram@gmail.com",
-  "code": "123456",
-  "new_password": "kevyn1234"
+  "code": "237475",
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "newPassword": "sofialamejor"
 }
 
+
 ###
-POST http://localhost:8080/api/users
+POST http://localhost:8080/api/auth
 Content-Type: application/json
 //registrarse
 
 {
   "name": "kevyn",
-  "email": "kevynram@gmail.com",
-  "phone": "3102381183",
-  "birthDate": "2004-02-23",
-  "password": "12345",
-  "role": "USER"
+  "surname": "andres",
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "phone": "31934232",
+  "birth_date": "2004-02-23",
+  "password": "perroGato123",
+  "photoUrl": "dfdsfdsfsdfsdfs",
+  "country": "colombia",
+  "role": "HOST"
 }
 
 ###
 GET http://localhost:8080/api/users/list
 //devuelve una lista de todos los usuarios
 
+
 ###
-PUT http://localhost:8080/api/users/12
+PUT http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
 Content-Type: application/json
+Authorization: Bearer {{token}}
 //editar datos del usuario
 
 {
   "name": "kevyn",
-  "phone": "3102381183",
-  "photoUrl": "/mnt/data/ff6a4b1e-5eda-40ec-8903-aeaaa1ae0b83.png"
+  "phone": "31932404",
+  "photoUrl": "http://mnt/data/ff6a4b1e-5eda-40ec-8903-aeaaa1ae0b83.png",
+  "birthDate": "2005-02-22"
 }
 
+
 ###
-DELETE http://localhost:8080/api/users/12
+DELETE http://localhost:8080/api/users/{id}
 Content-Type: application/json
+Authorization: Bearer {{token}}
 //eliminar usuario
 
 {
   "password": "234565"
 }
 
+
 ###
-POST http://localhost:8080/api/bookings/12
+GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
+Authorization: Bearer {{token}}
+// obtener el usuario (ver su perfil)
+
+
+###
+POST http://localhost:8080/api/bookings/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9
 Content-Type: application/json
+Authorization: Bearer {{token}}
 //crear una reserva
 
 {
-  "check_in": "2025-09-14T14:00:00",
-  "check_out": "2025-09-15T11:30:00",
+  "checkIn": "2025-11-29T14:00:00",
+  "checkOut": "2025-11-30T11:30:00",
   "guest_number": 2
 }
 
 
 ###
-GET http://localhost:8080/api/users/12/bookings
+GET http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/bookings/0
 Content-Type: application/json
 // ver el listado de reservas aplicando filtros
 
 {
-  "bookingState": "COMPLETED",
+  "state": "COMPLETED",
   "checkIn": "2025-09-14T14:00:00",
   "checkOut": "2025-09-15T11:30:00",
   "guest_number": 2
 }
 
-###
-DELETE http://localhost:8080/api/bookings/12
-//eliminar cancelar reserva
 
 ###
-GET http://localhost:8080/api/accommodations/12/bookings
+DELETE http://localhost:8080/api/bookings/6d93c2c4-975a-4540-b722-4c68c40fd59b
+Authorization: Bearer {{token}}
+//eliminar cancelar reserva
+
+
+###
+GET http://localhost:8080/api/accommodations/0
+Content-Type: application/json
+// ver la lista de alojamientos disponibles (aplicando filtros y paginación)
+
+{
+  "city": "Armenia",
+  "checkIn": "2025-10-15T15:00:00",
+  "checkOut": "2025-10-20T11:00:00",
+  "guest_number": 3,
+  "minimum": 80000.0,
+  "maximum": 250000.0,
+  "list": ["WIFI", "KITCHEN"]
+}
+
+
+###
+POST http://localhost:8080/api/accommodations
+Content-Type: application/json
+Authorization: Bearer {{token}}
+// Crear un alojamiento
+
+{
+  "title": "Casa en quimbaya",
+  "description": "Hermosa casa frente al mar, equipada con todas las comodidades para unas vacaciones inolvidables. Incluye piscina, terraza y acceso directo a la playa.",
+  "price": 150.0,
+  "picsUrl": [
+    "https://example.com/foto1.jpg",
+    "https://example.com/foto2.jpg"
+  ],
+  "accommodationType": "HOUSE",
+  "capacity": 6,
+  "country": "Colombia",
+  "department": "Atlántico",
+  "city": "Barranquilla",
+  "neighborhood": "Prado",
+  "street": "Calle 84 #45-32",
+  "postalCode": "AB12CD34",
+  "amenities": [
+    "WIFI"
+  ],
+  "latitude": 11.9685,
+  "longitude": -76.7813
+}
+
+###
+PUT http://localhost:8080/api/accommodations/adee0a6e-e335-42b3-986b-c4628d98420d
+Content-Type: application/json
+Authorization: Bearer {{token}}
+//actualizar, editar alojamiento
+
+{
+  "title": "Casa Bonita",
+  "description": "Una hermosa casa ubicada cerca del centro de la ciudad, con amplios espacios y todas las comodidades necesarias para una estadía confortable.",
+  "capacity": 4,
+  "price": 120.5,
+  "country": "Colombia",
+  "department": "Cundinamarca",
+  "city": "Bogotá",
+  "neighborhood": "Chapinero",
+  "street": "Carrera 7 #45-67",
+  "postalCode": "AB1234",
+  "pics_url": [
+    "https://example.com/img1.jpg",
+    "https://example.com/img2.jpg"
+  ],
+  "amenities": [
+    "WIFI"
+  ],
+  "accommodationType": "HOUSE"
+}
+
+###
+DELETE http://localhost:8080/api/accommodations/2b5a6d6d-1c42-4dc4-8208-09000ef22b97
+Authorization: Bearer {{token}}
+// eliminar un alojamiento (cambiar su estado)
+
+
+###
+GET http://localhost:8080/api/accommodations/f8f6866e-10b4-4a06-91ff-1fa2eafb99d3/amenities
+// lista de todos los servicios del alojamiento
+
+
+###
+GET http://localhost:8080/api/accommodations/adee0a6e-e335-42b3-986b-c4628d98420d/comments/1
+// lista de los comentarios del alojamiento
+
+
+###
+POST http://localhost:8080/api/accommodations/238c42c0-b003-4b4e-ab0f-113314514d1b/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+// crear un comentario a un alojamiento (reserva stado == finalizada)
+
+{
+  "comment": "Excelente alojamiento, muy limpio y bien ubicado. El anfitrión fue muy amable y siempre estuvo atento a nuestras necesidades. Definitivamente volvería.",
+  "rating": 5
+}
+
+
+###
+GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/bookings/0
 Content-Type: application/json
 // ver el listado de reservas que tiene el alojamiento
 
 {
-  "bookingState": "CONFIRMED",
-  "checkIn": "2025-09-14T14:00:00",
-  "checkOut": "2025-09-16T11:30:00",
-  "guest_number": 2
+  "state": null,
+  "checkIn": null,
+  "checkOut": null,
+  "guest_number": null
 }
 
+
 ###
-GET http://localhost:8080/api/accommodations
+GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/stats
 Content-Type: application/json
-// buscar alojamientos disponibles
+Authorization: Bearer {{token}}
+// ver estadisticas del alojamiento
 
 {
-  "city": "New York",
-  "checkIn": "2025-09-14T15:00:00",
-  "checkOut": "2025-09-16T11:00:00",
-  "guest_number": 3
+  "startDate": "2025-09-14T14:00:00",
+  "endDate": "2025-12-31T14:00:00"
 }
 
+
 ###
-POST http://localhost:8080/api/accommodations/12
+GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/detail
+// ver el alojamiento (GET)
+
+
+
+###
+GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab/accommodations/host/0
+Authorization: Bearer {{token}}
+// lista los alojamientos del host
+
+
+
+###
+POST http://localhost:8080/api/comments/ba671770-bd8e-45e4-a9e5-b576a121bc1a/reply/34a29e7f-c062-4937-8d44-2d0a7304914a
 Content-Type: application/json
-// Crear un alojamiento
-
-{
-  "title": "Cozy Apartment",
-  "description": "A modern apartment located in the city center, fully furnished and close to public transport.",
-  "price": 120.5,
-  "picsUrl": [
-    "https://example.com/pic1.jpg",
-    "https://example.com/pic2.jpg"
-  ],
-  "accommodationType": "APARTMENT",
-  "capacity": 4,
-  "country": "USA",
-  "department": "New York",
-  "city": "New York",
-  "neighborhood": "Manhattan",
-  "street": "5th Avenue",
-  "postalCode": "1234AB",
-  "amenities": [
-    "WIFI"
-  ]
-}
-
-###
-DELETE http://localhost:8080/api/accommodations/12
-// eliminar un alojamiento (cambiar su estado)
-
-###
-GET http://localhost:8080/api/users/12/accommodations/host
-// lista los alojamientos del cliente
-
-###
-GET http://localhost:8080/api/accommodations/12/amenities
-// lista de todos los servicios del alojamiento
-
-###
-GET http://localhost:8080/api/accommodations/12/comments
-// lista de todos los comentarios del alojamiento
-
-###
-POST http://localhost:8080/api/accommodations/12/comments
-Content-Type: application/json
-// crear un comentario a un alojamiento (reserva stado == finalizada)
-
-{
-  "comment": "muy bonita la finca",
-  "rating": 5
-}
-
-###
-POST http://localhost:8080/api/comments/12
-Content-Type: application/json
+Authorization: Bearer {{token}}
 //reponder un comentario
 
 {
   "reply": "gracias"
 }
-
-###
-GET http://localhost:8080/api/accommodations/12/stats
-// ver estadisticas del alojamiento

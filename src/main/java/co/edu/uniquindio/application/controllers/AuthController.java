@@ -1,9 +1,12 @@
 package co.edu.uniquindio.application.controllers;
 
+import co.edu.uniquindio.application.dto.authDTO.LoginDTO;
+import co.edu.uniquindio.application.dto.authDTO.TokenDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.ResetPasswordDTO;
+import co.edu.uniquindio.application.services.PasswordResetService;
 import co.edu.uniquindio.application.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,28 +20,33 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
+
+    // crear un usuario
+    @PostMapping
+    public ResponseEntity<ResponseDTO<String>> create(@Valid @RequestBody CreateUserDTO createUserDTO) throws Exception {
+        userService.create(createUserDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<>(false, "registro exitoso :)"));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDTO<TokenDTO>> login(@RequestBody LoginDTO loginDTO) throws Exception{
         TokenDTO token = userService.login(loginDTO);
-        return ResponseEntity.ok(new ResponseDTO<>(false, token));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseDTO<>(false, token));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<ResponseDTO<String>> create(@Valid @RequestBody CreateUserDTO userDTO) throws Exception{
-        userService.create(userDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<>(false, "El registro ha sido exitoso"));
-    }
 
+    // solicitar codigo para cambiar la contraseña
     @PostMapping("/forgot-password")
-    public ResponseEntity<ResponseDTO<String>> sendVerificationCode(@RequestBody ForgotPasswordDTO forgotPasswordDTO) throws Exception{
-        //TODO llamar al servicio para enviar el código
-        return ResponseEntity.ok(new ResponseDTO<>(false, "Código enviado"));
+    public ResponseEntity<String> requestReset(@Valid @RequestBody RequestResetPasswordDTO dto) throws Exception{
+        passwordResetService.requestPasswordReset(dto);
+        return ResponseEntity.ok("Se ha enviado un código de recuperación a tu email");
     }
 
-    @PutMapping("/reset-password")
-    public ResponseEntity<ResponseDTO<String>> changePassword(@RequestBody ResetPasswordDTO resetPasswordDTO) throws Exception{
-        userService.resetPassword(resetPasswordDTO);
-        return ResponseEntity.ok(new ResponseDTO<>(false, "Contraseña cambiada"));
+    @PatchMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO dto) throws Exception{
+        passwordResetService.resetPassword(dto);
+        return ResponseEntity.ok("Contraseña cambiada exitosamente");
     }
+
 }

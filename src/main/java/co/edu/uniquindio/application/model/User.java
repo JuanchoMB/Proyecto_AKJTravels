@@ -1,50 +1,57 @@
 package co.edu.uniquindio.application.model;
 
-import co.edu.uniquindio.application.model.enums.Role;
-import co.edu.uniquindio.application.model.enums.Status;
+import co.edu.uniquindio.application.model.enums.State;
 import jakarta.persistence.*;
 import lombok.*;
+import co.edu.uniquindio.application.model.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@AllArgsConstructor
-@Builder
 public class User {
 
     @Id
     private String id;
 
-    @Column(length = 100, nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
+
+    @Column(nullable = false, length = 100, unique = true)
+    private String email;
 
     @Column(length = 15)
     private String phone;
 
-    @Column(length = 100, nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
-    @Column(length = 200, nullable = false)
+    @Column(nullable = false)
+    private String country;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Column(nullable = false)
     private String password;
 
-    @Column(length = 200)
+    @Column(nullable = false, length = 200)
     private String photoUrl;
 
     @Column(nullable = false)
-    private LocalDate dateBirth;
+    private State state;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    @Column(length = 500)
+    private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private Boolean isHost;
 
 }
