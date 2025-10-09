@@ -126,12 +126,12 @@ public class PlaceServiceImpl implements PlaceService {
             throw new BadRequestException("el precio minimo no debe superar el precio maximo");
         }
         Pageable pageable = PageRequest.of(page, 10);
-        Page<Place> accommodations = placeRepository.searchPlaces(listPlaceDTO, pageable);
+        Page<Place> places = placeRepository.searchPlaces(listPlaceDTO, pageable);
 
-        if(accommodations.isEmpty()){
+        if(places.isEmpty()){
             throw new ResourceNotFoundException("No hay alojamientos disponibles, prueba otro filtro");
         }
-        return accommodations.stream()
+        return places.stream()
                 .map(showPlaceMapper::toPlaceDTO)
                 .toList();
     }

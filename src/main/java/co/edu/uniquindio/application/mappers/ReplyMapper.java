@@ -11,6 +11,7 @@ public interface ReplyMapper {
 
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())" )
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())" )
-
+    // ReplyDTO no trae commentId; se setea en el servicio al crear la respuesta
+    @Mapping(target = "comment", ignore = true)
     Reply toEntity(ReplyDTO replyDTO);
 }

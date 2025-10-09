@@ -130,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @NotNull
-    private List<BookingDTO> getBookingPlaceDTOS(String id, int page, SearchBookingDTO searchBookingDTO, boolean empty, Optional<Place> accommodation) {
+    private List<BookingDTO> getBookingPlaceDTOS(String id, int page, SearchBookingDTO searchBookingDTO, boolean empty, Optional<Place> place) {
         if (empty) {
             throw new ResourceNotFoundException("No existe el alojamiento");
         }

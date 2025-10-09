@@ -16,7 +16,7 @@ public record CreatePlaceDTO(@NotBlank(message = "El t√≠tulo no puede estar vac√
                              @NotNull @Positive double price,
                              @NotEmpty @Size(min = 1, max = 10) List<String> picsUrl,
                              @NotNull(message = "el tipo de alojamiento es obligatorio")
-                             PlaceType accommodationType,
+                             PlaceType placeType,
                              @Min(1) @Max(60) int capacity,
                              @NotBlank @Length(max=30) String country,
                              @NotBlank @Length(max=30) String department,

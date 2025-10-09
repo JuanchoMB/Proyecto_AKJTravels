@@ -11,7 +11,9 @@ public interface CommentMapper {
 
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-
-
-    Comment toEntity(CreateCommentDTO createCommentDTO);
+    // Estas referencias se setean en el servicio usando los repos:
+    @Mapping(target = "place", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    Comment toEntity(CreateCommentDTO dto);
 }

@@ -11,13 +11,14 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ListCommentsMapper {
 
+    // createdAt -> commentDate; user lo convertimos con el método default
+    @Mapping(source = "createdAt", target = "commentDate")
     @Mapping(source = "user", target = "user")
-
     CommentDTO ToCommentDTO(Comment comment);
 
-    // Método auxiliar para mapear User a UserCommentDTO
+    // Auxiliary: User -> UserCommentDTO
     default UserCommentDTO mapUser(User user){
-        if(user == null) return null;
+        if (user == null) return null;
         return new UserCommentDTO(user.getName(), user.getPhotoUrl());
     }
 }

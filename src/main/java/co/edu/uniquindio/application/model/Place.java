@@ -27,7 +27,7 @@ public class Place {
 
     @ElementCollection
     @CollectionTable(name = "pics_urls", // tabla intermedia
-                    joinColumns = @JoinColumn(name = "accommodation_id") // FK a Accommodation
+                    joinColumns = @JoinColumn(name = "place_id") // FK a Place
     )
     @Column(name = "pics_url")
     private List<String> pics_url;
@@ -37,7 +37,7 @@ public class Place {
     private String description;
 
     @ElementCollection
-    @CollectionTable(joinColumns = @JoinColumn(name = "accommodation_id"))
+    @CollectionTable(joinColumns = @JoinColumn(name = "place_id"))
     @Column(name = "amenitie")
     private List<Amenities> amenities;
 

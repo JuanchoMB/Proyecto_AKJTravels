@@ -25,8 +25,8 @@ public class Comment {
     @Column(nullable = false)
     private int rating;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id", nullable = false)
     private Place place;
 
     @ManyToOne(optional = false)

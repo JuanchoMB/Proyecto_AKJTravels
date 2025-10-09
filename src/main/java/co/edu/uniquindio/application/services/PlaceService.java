@@ -10,7 +10,7 @@ public interface PlaceService {
     void edit(String id, EditPlaceDTO editPlaceDTO) throws Exception;
     void delete(String id) throws Exception;
     // List<BookingDTO> listAll(ListBookingsDTO listBookingsDTO) throws Exception;
-    List<PlaceDTO> search(ListPlaceDTO listAccommodationDTO, int page) throws Exception;
+    List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception;
     List<Amenities> listAllAmenities(String id) throws Exception;
     PlaceStatsDTO stats(String id, StatsDateDTO statsDateDTO) throws Exception;
     List<PlaceDTO> listAllPlacesHost(String id, int page) throws Exception;

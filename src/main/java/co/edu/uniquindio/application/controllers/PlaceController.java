@@ -101,8 +101,8 @@ public class PlaceController {
     // obtener el alojamiento, cuando un espectador sin loguearse toca en un alojamiento
     @GetMapping("/{id}/detail")
     public ResponseEntity<ResponseDTO<PlaceDetailDTO>> get(@PathVariable String id) throws Exception {
-        PlaceDetailDTO accommodationDetailDTO = placeService.get(id);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, accommodationDetailDTO));
+        PlaceDetailDTO placeDetailDTO = placeService.get(id);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, placeDetailDTO));
     }
 
     //para sacar el id del token
