@@ -1,8 +1,10 @@
 package co.edu.uniquindio.application.dto.userDTO;
 
 import co.edu.uniquindio.application.model.enums.Role;
-import jakarta.validation.constraints.*;
-
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
@@ -24,4 +26,6 @@ public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
                             String password,
                             @NotNull Role role
 ) {
+
+
 }

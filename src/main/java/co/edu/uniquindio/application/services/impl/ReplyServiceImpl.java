@@ -3,21 +3,16 @@ package co.edu.uniquindio.application.services.impl;
 import co.edu.uniquindio.application.dto.commentDTO.ReplyDTO;
 import co.edu.uniquindio.application.exceptions.ForbiddenException;
 import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
-import co.edu.uniquindio.application.exceptions.UnauthorizedException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.ReplyMapper;
-import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.Comment;
-import co.edu.uniquindio.application.model.HostProfile;
 import co.edu.uniquindio.application.model.Reply;
 import co.edu.uniquindio.application.repositories.CommentRepository;
 import co.edu.uniquindio.application.repositories.HostRepository;
 import co.edu.uniquindio.application.repositories.ReplyRepository;
-import co.edu.uniquindio.application.services.CommentService;
 import co.edu.uniquindio.application.services.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 @Service
@@ -31,7 +26,7 @@ public class ReplyServiceImpl implements ReplyService {
 
 
     @Override
-    public void create(String idUser, String commentId, ReplyDTO replyDTO) throws ValueConflictException {
+    public void create(String idUser, String commentId, ReplyDTO replyDTO) {
 
         //verificar que si exista el comentario
         Optional<Comment> auxComment = commentRepository.findById(commentId);

@@ -27,4 +27,5 @@ public class ImageController {
         imageService.delete(id);
         return ResponseEntity.ok( new ResponseDTO<>(false, "Imagen eliminada exitosamente") );
     }
+
 }

@@ -1,68 +1,54 @@
+// co/edu/uniquindio/application/mappers/PlaceMapper.java
 package co.edu.uniquindio.application.mappers;
 
 import co.edu.uniquindio.application.dto.placeDTO.CreatePlaceDTO;
 import co.edu.uniquindio.application.dto.placeDTO.EditPlaceDTO;
 import co.edu.uniquindio.application.model.Place;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PlaceMapper {
 
-    // CreatePlaceDTO -> Place (creación)
-    // NOTA: user se setea en el servicio; por eso va ignore
-    @Mapping(target = "location.country", source = "country")
-    @Mapping(target = "location.department", source = "department")
-    @Mapping(target = "location.city", source = "city")
-    @Mapping(target = "location.neighborhood", source = "neighborhood")
-    @Mapping(target = "location.street", source = "street")
-    @Mapping(target = "location.postalCode", source = "postalCode")
-    @Mapping(target = "location.coordinates.latitude", source = "latitude")
-    @Mapping(target = "location.coordinates.longitude", source = "longitude")
-    @Mapping(target = "pics_url", source = "picsUrl")                // <— Place usa snake_case
-    @Mapping(target = "placeType", source = "placeType")
-    @Mapping(target = "state", constant = "ACTIVE")
-    @Mapping(target = "totalRatings", constant = "0")
-    @Mapping(target = "averageRatings", constant = "0")
-    @Mapping(target = "comments", expression = "java(new java.util.ArrayList<>())")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "user", ignore = true)
+    @Mappings({
+            @Mapping(target = "id", expression = "java(UUID.randomUUID().toString())"),
+            @Mapping(target = "createdAt", expression = "java(LocalDateTime.now())"),
+            @Mapping(target = "picsUrl", source = "picsUrl"), // OJO
+            @Mapping(target = "location.country",      source = "country"),
+            @Mapping(target = "location.department",   source = "department"),
+            @Mapping(target = "location.city",         source = "city"),
+            @Mapping(target = "location.neighborhood", source = "neighborhood"),
+            @Mapping(target = "location.street",       source = "street"),
+            @Mapping(target = "location.postalCode",   source = "postalCode"),
+            @Mapping(target = "location.coordinates.latitude",  source = "latitude"),
+            @Mapping(target = "location.coordinates.longitude", source = "longitude"),
+            // set por servicio
+            @Mapping(target = "user", ignore = true),
+            @Mapping(target = "state", ignore = true),
+            @Mapping(target = "totalRatings", ignore = true),
+            @Mapping(target = "averageRatings", ignore = true)
+    })
     Place toEntity(CreatePlaceDTO dto);
 
-    // Place -> CreatePlaceDTO (solo si lo usas; mapeo explícito de anidados)
-    @Mapping(target = "country", source = "location.country")
-    @Mapping(target = "department", source = "location.department")
-    @Mapping(target = "city", source = "location.city")
-    @Mapping(target = "neighborhood", source = "location.neighborhood")
-    @Mapping(target = "street", source = "location.street")
-    @Mapping(target = "postalCode", source = "location.postalCode")
-    @Mapping(target = "latitude", source = "location.coordinates.latitude")
-    @Mapping(target = "longitude", source = "location.coordinates.longitude")
-    @Mapping(target = "picsUrl", source = "pics_url")                // <— inverso
-    @Mapping(target = "placeType", source = "placeType")
-    CreatePlaceDTO toCreatePlaceDTO(Place place);
-
-    // EditPlaceDTO -> Place (actualización parcial)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "location.country", source = "country")
-    @Mapping(target = "location.department", source = "department")
-    @Mapping(target = "location.city", source = "city")
-    @Mapping(target = "location.neighborhood", source = "neighborhood")
-    @Mapping(target = "location.street", source = "street")
-    @Mapping(target = "location.postalCode", source = "postalCode")
-    @Mapping(target = "pics_url", source = "pics_url")               // Edit usa snake_case
-    @Mapping(target = "placeType", source = "placeType")     // Edit usa placeType
-    // Ignora campos inmutables / calculados
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "state", ignore = true)
-    @Mapping(target = "totalRatings", ignore = true)
-    @Mapping(target = "averageRatings", ignore = true)
-    @Mapping(target = "user", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "comments", ignore = true)
-    void EditPlaceFromDto(EditPlaceDTO dto, @MappingTarget Place place);
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings({
+            @Mapping(target = "title", source = "title"),
+            @Mapping(target = "description", source = "description"),
+            @Mapping(target = "capacity", source = "capacity"),
+            @Mapping(target = "price", source = "price"),
+            @Mapping(target = "placeType", source = "placeType"),
+            @Mapping(target = "amenities", source = "amenities"),
+            @Mapping(target = "picsUrl", source = "picsUrl"),
+            @Mapping(target = "location.country",      source = "country"),
+            @Mapping(target = "location.department",   source = "department"),
+            @Mapping(target = "location.city",         source = "city"),
+            @Mapping(target = "location.neighborhood", source = "neighborhood"),
+            @Mapping(target = "location.street",       source = "street"),
+            @Mapping(target = "location.postalCode",   source = "postalCode"),
+            @Mapping(target = "location.coordinates.latitude",  source = "latitude"),
+            @Mapping(target = "location.coordinates.longitude", source = "longitude")
+    })
+    void editPlaceFromDto(EditPlaceDTO dto, @MappingTarget Place place);
 }

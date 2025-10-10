@@ -22,10 +22,11 @@ public record CreatePlaceDTO(@NotBlank(message = "El título no puede estar vac�
                              @NotBlank @Length(max=30) String department,
                              @NotBlank @Length(max=30) String city,
                              @Length(max = 20) String neighborhood //puede ser opcional
-                             , String street,
+                            , String street,
                              @NotBlank @Pattern(regexp = "^[0-9A-Za-z]{4,10}$", message = "El código postal no es válido")
                              String postalCode,
                              @NotEmpty(message = "debe tener al menos 1 amenidad") List<Amenities> amenities,
                              @NotNull float latitude,  @NotNull float longitude
+
 ) {
 }

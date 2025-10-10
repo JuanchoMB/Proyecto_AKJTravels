@@ -10,4 +10,7 @@ public record UserBookingsListDTO(
         @FutureOrPresent  LocalDateTime checkIn,
         @Future LocalDateTime checkOut,
         int guest_number
-) {}
+
+
+) {
+}

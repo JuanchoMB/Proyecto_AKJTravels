@@ -1,5 +1,5 @@
 package co.edu.uniquindio.application.services.impl;
-
+//samu
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
@@ -61,12 +61,12 @@ public class BookingServiceImpl implements BookingService {
 
 
         //la mapeamos y la guardamos en la DB
-        Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
+        Booking booking = bookingMapper.toEntity(createBookingDTO);
         bookingRepository.save(booking);
 
     }
 
-    // Cancelar una reserva
+    // para cancelar una reserva
     @Override
     public void delete(String id) throws Exception {
         Optional<Booking> booking = bookingRepository.findById(id);
@@ -142,4 +142,6 @@ public class BookingServiceImpl implements BookingService {
                 .map(bookingMapper::toBookingDTO)
                 .toList();
     }
+
+
 }

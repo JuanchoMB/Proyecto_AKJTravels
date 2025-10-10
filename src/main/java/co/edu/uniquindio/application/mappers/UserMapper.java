@@ -1,42 +1,44 @@
+// co/edu/uniquindio/application/mappers/UserMapper.java
 package co.edu.uniquindio.application.mappers;
 
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.EditUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
 import co.edu.uniquindio.application.model.User;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import co.edu.uniquindio.application.model.enums.State;
+import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
-    // CreateUserDTO -> User
-    @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
-    @Mapping(target = "state", constant = "ACTIVE")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "isHost", constant = "false")
-    // description se mapea automáticamente si el nombre coincide en DTO y entidad
+    @Mappings({
+            @Mapping(target = "id",        expression = "java(UUID.randomUUID().toString())"),
+            @Mapping(target = "createdAt", expression = "java(LocalDateTime.now())"),
+            @Mapping(target = "state",     constant = "ACTIVE"),
+            @Mapping(target = "isHost",    constant = "false")
+    })
     User toEntity(CreateUserDTO dto);
 
-    // User -> UserDTO (ojo con BirthDate en DTO vs birthDate en entidad)
-    @Mapping(target = "BirthDate", source = "birthDate")
-    UserDTO toUserDTO(User user);
-
-    // EditUserDTO -> User (patch: ignora nulls y campos inmutables)
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "email", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "country", ignore = true)
-    @Mapping(target = "state", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "isHost", ignore = true)
-    @Mapping(target = "role", ignore = true)
-    @Mapping(target = "birthDate", source = "BirthDate")
-    // description YA NO se ignora: se mapea por nombre si viene en el DTO
+    @BeanMapping(ignoreByDefault = true)
+    @Mappings({
+            @Mapping(target = "name",      source = "name"),
+            @Mapping(target = "phone",     source = "phone"),
+            @Mapping(target = "photoUrl",  source = "photoUrl"),
+            @Mapping(target = "birthDate", source = "birthDate"),
+            @Mapping(target = "description", source = "description")
+    })
     void editUserFromDto(EditUserDTO dto, @MappingTarget User user);
+
+    @Mappings({
+            @Mapping(target = "id",       source = "id"),
+            @Mapping(target = "name",     source = "name"),
+            @Mapping(target = "email",    source = "email"),
+            @Mapping(target = "phone",    source = "phone"),
+            @Mapping(target = "photoUrl", source = "photoUrl"),
+            @Mapping(target = "role",     source = "role")
+    })
+    UserDTO toUserDTO(User user);
 }

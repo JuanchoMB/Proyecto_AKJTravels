@@ -78,14 +78,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void edit(String id, EditUserDTO editUserDto) throws Exception {
+    public void edit(String id, EditUserDTO editUserDTO) throws Exception {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         // Validacion foto de perfil
-        if (editUserDto.photoUrl() != null && !imageValidators.isValid(editUserDto.photoUrl())) {
+        if (editUserDTO.photoUrl() != null && !imageValidators.isValid(editUserDTO.photoUrl())) {
             throw new ValueConflictException("El formato de imagen no es valido");
         }
-        userMapper.editUserFromDto(editUserDto, user);
+        userMapper.editUserFromDto(editUserDTO, user);
+
         userRepository.save(user);
     }
 
@@ -153,7 +154,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(String id,  EditPasswordDTO editPasswordDTO) throws Exception {
+    public void changePassword(String id, EditPasswordDTO editPasswordDTO) throws Exception {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("Usuario no encontrado");

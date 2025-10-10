@@ -1,4 +1,5 @@
 package co.edu.uniquindio.application.services.impl;
+
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Service

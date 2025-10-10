@@ -1,7 +1,7 @@
 package co.edu.uniquindio.application.config;
 
-import co.edu.uniquindio.application.security.JwtAuthenticationEntryPoint;
 import co.edu.uniquindio.application.security.JWTFilter;
+import co.edu.uniquindio.application.security.JwtAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,13 +12,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.*;
 
 import java.util.List;
 
@@ -28,32 +24,24 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Configura la seguridad HTTP para la aplicación
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(req -> req
-                                .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll() //listar o .... gets
-                                .requestMatchers("/api/auth/**").permitAll() //login y registro
-                                .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
-                                .requestMatchers("/api/bookings/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/users/**/bookings/**").hasAnyRole("USER", "HOST")
-                                .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
-                                .requestMatchers(
-                                        "/api/auth/**",       // login, registro
-                                        "/ws-chat/**",        // endpoint WebSocket
-                                        "/app/**"             // destino STOMP del cliente
-                                ).permitAll()
-                                .anyRequest().authenticated()
-                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        //  .requestMatchers("/api/bookings/**").hasAnyRole("USER", "HOST")
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
+                .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(c -> c.authenticationEntryPoint(authenticationEntryPoint))
+                .authorizeHttpRequests(registry -> registry
+                        // públicos (ajusta según tus endpoints)
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/ws/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // lo demás requiere auth
+                        .anyRequest().authenticated()
                 )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,10 +49,9 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        // Configura las políticas de CORS para permitir solicitudes desde el frontend
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOrigins(List.of("*")); // pon tu dominio/puerto de Angular si quieres restringir
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
@@ -74,15 +61,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        // Permite codificar y verificar contraseñas utilizando BCrypt
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-            throws Exception {
-        // Proporciona un AuthenticationManager para la autenticación de usuarios
-        return configuration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
     }
 }

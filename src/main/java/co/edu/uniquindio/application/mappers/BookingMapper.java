@@ -1,29 +1,33 @@
+// co/edu/uniquindio/application/mappers/BookingMapper.java
 package co.edu.uniquindio.application.mappers;
 
-import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.model.Booking;
-import co.edu.uniquindio.application.model.Place;
-import co.edu.uniquindio.application.model.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
+import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {UserMapper.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BookingMapper {
 
-    // CreateBookingDTO + refs -> Booking
-    @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
-    @Mapping(target = "bookingState", constant = "PENDING")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(source = "place", target = "place")
-    @Mapping(source = "user", target = "user")
-    Booking toEntity(CreateBookingDTO dto, Place place, User user);
+    @Mappings({
+            @Mapping(target = "id",        expression = "java(UUID.randomUUID().toString())"),
+            @Mapping(target = "createdAt", expression = "java(LocalDateTime.now())"),
+            @Mapping(target = "bookingState", constant = "PENDING"),
+            // lo setea el servicio
+            @Mapping(target = "user", ignore = true),
+            @Mapping(target = "place", ignore = true)
+    })
+    Booking toEntity(CreateBookingDTO dto);
 
-    // Booking -> BookingDTO
-    // title sale del Place, state es el State del Place
-    @Mapping(target = "title", source = "place.title")
-    @Mapping(target = "state", source = "place.state")
-    @Mapping(target = "user", source = "user") // usa UserMapper (incluye BirthDate)
+    @Mappings({
+            @Mapping(target = "id", source = "id"),
+            @Mapping(target = "placeId", source = "place.id"),
+            @Mapping(target = "userId", source = "user.id"),
+            @Mapping(target = "checkIn", source = "checkIn"),
+            @Mapping(target = "checkOut", source = "checkOut"),
+            @Mapping(target = "guestNumber", source = "guestNumber"),
+            @Mapping(target = "bookingState", source = "bookingState"),
+            @Mapping(target = "createdAt", source = "createdAt")
+    })
     BookingDTO toBookingDTO(Booking booking);
 }

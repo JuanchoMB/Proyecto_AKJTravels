@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dto.commentDTO.ReplyDTO;
 import co.edu.uniquindio.application.dto.ResponseDTO;
+import co.edu.uniquindio.application.services.CommentService;
 import co.edu.uniquindio.application.services.CurrentUserService;
 import co.edu.uniquindio.application.services.ReplyService;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final   ReplyService replyService;
+    private final ReplyService replyService;
     private final CurrentUserService currentUserService;
 
     //  Responder a un comentario (host). (hecho)

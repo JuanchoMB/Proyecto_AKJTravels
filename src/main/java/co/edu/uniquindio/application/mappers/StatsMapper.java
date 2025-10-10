@@ -8,10 +8,9 @@ import org.mapstruct.MappingConstants;
 public interface StatsMapper {
 
     PlaceStatsDTO toPlaceStatsDTO(double averageRating,
-                                  long totalComments,
-                                  long totalReservations,
-                                  double occupancyRate,
-                                  int cancellations,
-                                  double totalRevenue
-    );
+                                                  long totalComments,
+                                                  long totalReservations,
+                                                  double occupancyRate,
+                                                  int cancellations,
+                                                  double totalRevenue);
 }

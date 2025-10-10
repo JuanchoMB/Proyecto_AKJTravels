@@ -11,11 +11,8 @@ import org.simplejavamail.mailer.MailerBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import static org.simplejavamail.config.ConfigLoader.Property.SMTP_PORT;
-
 @Service
 public class EmailServiceImpl implements EmailService {
-
     @Override
     @Async
     public void sendMail(SendEmailDTO sendEmailDTO) throws Exception {
@@ -26,7 +23,7 @@ public class EmailServiceImpl implements EmailService {
                 .withPlainText(sendEmailDTO.body())
                 .buildEmail();
         try(Mailer mailer = MailerBuilder
-                .withSMTPServer("smtp.gmail.com", 587, "AlexAvanzadaProgramacion@gmail.com", "bzeakckafcqoyrgi")
+                .withSMTPServer("smtp.gmail.com", 587, "nataliaavanzadaprogramacion@gmail.com", "bzeakckafcqoyrgi")
                 .withTransportStrategy(TransportStrategy.SMTP_TLS)
                 .withDebugLogging(true)
                 .buildMailer()) {

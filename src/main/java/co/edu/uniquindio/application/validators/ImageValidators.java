@@ -1,7 +1,6 @@
 package co.edu.uniquindio.application.validators;
 
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 @Component

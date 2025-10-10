@@ -25,8 +25,8 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
       AND (:endDate IS NULL OR c.createdAt <= :endDate)
     """)
     Double findAverageRatingByPlaceId(@Param("placeId") String placeId,
-                                      @Param("startDate")LocalDateTime startDate,
-                                      @Param("endDate")LocalDateTime endDate);
+                                              @Param("startDate")LocalDateTime startDate,
+                                              @Param("endDate")LocalDateTime endDate);
 
 
     @Query("""
@@ -39,13 +39,14 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
 
     //cuenta el numero dde comentarios de un alojamiento
     @Query("""
-    SELECT COUNT(c)
-    FROM Comment c
-    where c.place.id = :placeId
-    AND (:startDate IS NULL OR c.createdAt >= :startDate)
-    AND (:endDate IS NULL OR c.createdAt <= :endDate)
+SELECt COUNT(c)
+FROM Comment c
+where c.place.id = :placeId
+AND (:startDate IS NULL OR c.createdAt >= :startDate)
+      AND (:endDate IS NULL OR c.createdAt <= :endDate)
 """)
     long countByPlaceId(@Param("placeId")String placeId,
-                        @Param("startDate")LocalDateTime startDate,
-                        @Param("endDate")LocalDateTime endDate);
+                                @Param("startDate")LocalDateTime startDate,
+                                @Param("endDate")LocalDateTime endDate);
+
 }

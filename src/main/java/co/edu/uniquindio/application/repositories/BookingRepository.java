@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -68,8 +67,8 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
       AND (:endDate IS NULL OR b.createdAt <= :endDate)
     """)
     long countByPlaceIdAndBetween(@Param("placeId")String placeId,
-                                  @Param("startDate")LocalDateTime startDate,
-                                  @Param("endDate")LocalDateTime endDate);
+                                          @Param("startDate")LocalDateTime startDate,
+                                          @Param("endDate")LocalDateTime endDate);
 
     //promedio de ocupación del alojamiento (occupancyRate)
     @Query("""
@@ -81,8 +80,8 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
       AND (:endDate IS NULL OR b.checkOut <= :endDate)
 """)
     Double findAverageOccupancyByPlaceId(@Param("placeId")String placeId,
-                                         @Param("startDate")LocalDateTime startDate,
-                                         @Param("endDate")LocalDateTime endDate);
+                                                 @Param("startDate")LocalDateTime startDate,
+                                                 @Param("endDate")LocalDateTime endDate);
 
     // numero de reservas que han sido canceladas
     @Query("""
@@ -94,8 +93,8 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
       AND (:endDate IS NULL OR b.checkOut <= :endDate)
     """)
     int countCancellationsByPlaceId(@Param("placeId")String placeId,
-                                    @Param("startDate")LocalDateTime startDate,
-                                    @Param("endDate")LocalDateTime endDate);
+                                            @Param("startDate")LocalDateTime startDate,
+                                            @Param("endDate")LocalDateTime endDate);
 
     //promedio de ganancias de el alojamiento (reservas completadas)
     @Query("""
@@ -108,8 +107,7 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
       AND (:endDate IS NULL OR b.checkOut <= :endDate)
     """)
     Double findAverageRevenueByPlaceId(@Param("placeId")String placeId,
-                                                        LocalDateTime startDate,
-                                                        LocalDateTime endDate);
+                                               LocalDateTime startDate, LocalDateTime endDate);
 
     @Query("""
     SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END
@@ -122,4 +120,5 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
             @Param("placeId") String placeId,
             @Param("checkIn") LocalDateTime checkIn,
             @Param("checkOut") LocalDateTime checkOut);
+
 }

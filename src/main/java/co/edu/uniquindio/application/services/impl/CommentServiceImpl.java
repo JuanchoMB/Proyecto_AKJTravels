@@ -10,9 +10,9 @@ import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Comment;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.BookingState;
+import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
 import co.edu.uniquindio.application.repositories.CommentRepository;
-import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -54,10 +54,10 @@ public class CommentServiceImpl implements CommentService {
     // metodo para crear el comentario (posible cambio). Validar que el comentario solo se haga si la reserva pasó y que corresponda al alojamiento deonde se quedó el usuario
     @Override
     @Transactional
-    public void createComment(String bookingId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
+    public void createComment(String placeId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
 
         // validar existencia de la reserva
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findById(placeId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva"));
 
         // validar que la reserva ya haya terminado
@@ -75,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         // validamos que no haya comentado antes en esta reserva
-        if (commentRepository.existsByBookingId(bookingId)) {
+        if (commentRepository.existsByBookingId(placeId)) {
             throw new ForbiddenException("Ya realizaste un comentario para esta reserva");
         }
 

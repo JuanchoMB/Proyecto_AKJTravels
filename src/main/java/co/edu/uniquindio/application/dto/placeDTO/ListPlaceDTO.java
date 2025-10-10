@@ -18,5 +18,6 @@ public record ListPlaceDTO(
         @PositiveOrZero Double minimum,
         @PositiveOrZero Double maximum,
         List<Amenities> list
+
 ) {
 }

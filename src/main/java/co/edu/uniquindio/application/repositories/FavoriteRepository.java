@@ -1,24 +1,23 @@
 package co.edu.uniquindio.application.repositories;
 
 import co.edu.uniquindio.application.model.Favorite;
-import co.edu.uniquindio.application.model.FavoriteId;
 import co.edu.uniquindio.application.model.Place;
+import co.edu.uniquindio.application.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
+import java.util.Optional;
 
-    boolean existsById(FavoriteId id);
+public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
-    boolean existsByUser_IdAndPlace_Id(String userId, String placeId);
+    boolean existsByUserAndPlace(User user, Place place);
 
-    void deleteByUser_IdAndPlace_Id(String userId, String placeId);
+    Optional<Favorite> findByUserAndPlace(User user, Place place);
 
-    long countByPlace_Id(String placeId);
+    // Para listar favoritos de un usuario con paginación
+    Page<Favorite> findByUser(User user, Pageable pageable);
 
-    Page<Favorite> findByUser_Id(String userId, Pageable pageable);
-
-
-    Page<Place> findByUser_IdOrderByCreatedAtDesc(String userId, Pageable pageable);
+    // Para contar favoritos de un lugar
+    long countByPlace(Place place);
 }

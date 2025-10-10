@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "places")
 public class Place {
 
     @Id
@@ -26,11 +27,12 @@ public class Place {
     private double price;
 
     @ElementCollection
-    @CollectionTable(name = "pics_urls", // tabla intermedia
-                    joinColumns = @JoinColumn(name = "place_id") // FK a Place
+    @CollectionTable(
+            name = "pics_urls", // tabla intermedia
+            joinColumns = @JoinColumn(name = "place_id") // FK a Place
     )
     @Column(name = "pics_url")
-    private List<String> pics_url;
+    private List<String> picsUrl;
 
     @Lob
     @Column(nullable = false)

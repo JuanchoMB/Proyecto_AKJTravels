@@ -1,490 +1,297 @@
-### ─────────────────────────────────────────────────────────────
-### VARIABLES
-### ─────────────────────────────────────────────────────────────
-@HOST = 127.0.0.1
-@PORT = 8080
-@BASE = http://{{HOST}}:{{PORT}}/api
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
 
-@EMAIL = kevyn@example.com
-@PASS  = 12345678
 
-@TOKEN =
-@USER_ID =
-@PLACE_ID =
-@BOOKING_ID =
-@COMMENT_ID =
-@REPLY_ID =
-
-### ─────────────────────────────────────────────────────────────
-### 1) AUTH
-### ─────────────────────────────────────────────────────────────
-
-# Crear usuario: POST /api/auth
-# (Tu controlador lo mapea a POST sobre /api/auth SIN /register)
-# @name auth_register
-POST {{BASE}}/auth
-Accept: application/json
+###
+PATCH http://localhost:8080/api/users/27322d50-8770-40e4-9e9e-0ef381835ad8
 Content-Type: application/json
+Authorization: Bearer {{token}}
+//cambiar contraseña
 
 {
-  "name": "Kevyn Tester",
-  "email": "{{EMAIL}}",
-  "password": "{{PASS}}",
-  "phone": "3001234567"
+  "old_password": "perroGato123",
+  "new_password": "3435555555"
 }
 
 ###
-# Login: POST /api/auth/login  (devuelve ResponseDTO<TokenDTO>)
-# @name auth_login
-POST {{BASE}}/auth/login
-Accept: application/json
+PUT http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/host
 Content-Type: application/json
+Authorization: Bearer {{token}}
+//añadir descripcion y/o documentos legales
 
 {
-  "email": "{{EMAIL}}",
-  "password": "{{PASS}}"
-}
-
-> {%
-    /* Guarda TOKEN desde ResponseDTO<TokenDTO> soportando varios nombres comunes */
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const d = r.data || r;
-        const t = d.token || d.accessToken || d.jwt || d.id_token || "";
-        if (t) client.global.set("TOKEN", t);
-
-        // Intento de deducir USER_ID desde el JWT (sub / id / userId)
-        if (t) {
-            const parts = t.split(".");
-            if (parts.length >= 2) {
-                let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-                while (payload.length % 4) payload += "=";
-                try {
-                    // atob puede no estar; si no, intenta Buffer
-                    let json;
-                    if (typeof atob === "function") {
-                        json = atob(payload);
-                    } else if (typeof Buffer !== "undefined") {
-                        json = Buffer.from(payload, "base64").toString("utf8");
-                    }
-                    const obj = JSON.parse(json || "{}");
-                    const uid = obj.sub || obj.id || obj.userId || obj.username || "";
-                    if (uid) client.global.set("USER_ID", uid);
-                } catch (e) { /* sin-op */ }
-            }
-        }
-    } catch(e) { /* sin-op */ }
-%}
-
-###
-# Forgot password: POST /api/auth/forgot-password
-# @name auth_forgot
-POST {{BASE}}/auth/forgot-password
-Accept: application/json
-Content-Type: application/json
-
-{
-  "email": "{{EMAIL}}"
+  "description": "10 años en la industria",
+  "legal_documents": [
+    "https://cdn.example.com/docs/id_frontal.pdf",
+    "https://cdn.example.com/docs/id_reverso.pdf"
+  ]
 }
 
 ###
-# Reset password: PATCH /api/auth/reset-password
-# @name auth_reset
-PATCH {{BASE}}/auth/reset-password
-Accept: application/json
+POST http://localhost:8080/api/auth/login
 Content-Type: application/json
+// login
 
 {
-  "email": "{{EMAIL}}",
-  "code": "ABCDEF",
-  "newPassword": "NewStr0ngP@ss!"
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "password": "sofialamejor"
 }
 
-### ─────────────────────────────────────────────────────────────
-### 2) USERS  (/api/users/{id})
-### ─────────────────────────────────────────────────────────────
+> {% client.global.set("token", response.body.message.token); %}
 
-# Obtener usuario por id (requiere saber USER_ID)
-# @name users_get
-GET {{BASE}}/users/{{USER_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
 
 ###
-# Actualizar datos del usuario
-# @name users_update
-PUT {{BASE}}/users/{{USER_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+POST http://localhost:8080/api/auth/forgot-password
 Content-Type: application/json
+// solicitar codigo para cambiar la contraseña
 
 {
-  "name": "Kevyn Actualizado",
-  "phone": "3007654321"
+  "email": "kevyn.ramirezg@uqvirtual.edu.co"
+}
+
+
+###
+PATCH http://localhost:8080/api/auth/reset-password
+Content-Type: application/json
+//cambiar contraseña olvidada
+
+{
+  "code": "966152",
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "newPassword": "sofialamejor"
+}
+
+
+###
+POST http://localhost:8080/api/auth
+Content-Type: application/json
+//registrarse
+
+{
+  "name": "samuel",
+  "surname": "andres",
+  "email": "kevyn.ramirezg@uqvirtual.edu.co",
+  "phone": "31934232",
+  "birthDate": "2005-02-23",
+  "password": "perroGato123",
+  "photoUrl": "dfdsfdsfsdfsdfs",
+  "country": "colombia",
+  "role": "HOST"
 }
 
 ###
-# Cambiar contraseña del usuario
-# @name users_change_password
-PATCH {{BASE}}/users/{{USER_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+GET http://localhost:8080/api/users/list
+//devuelve una lista de todos los usuarios
+
+
+###
+PUT http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
 Content-Type: application/json
+Authorization: Bearer {{token}}
+//editar datos del usuario
 
 {
-  "currentPassword": "{{PASS}}",
-  "newPassword": "Sup3rStr0ngP@ss!"
+  "name": "samu",
+  "phone": "31932404",
+  "photoUrl": "http://mnt/data/ff6a4b1e-5eda-40ec-8903-aeaaa1ae0b83.png",
+  "birthDate": "2005-02-22"
 }
 
-###
-# (Opcional) Eliminar usuario — requiere tu DeleteUserDTO real
-# Déjalo comentado si tu DTO exige otros campos
-###
-# @name users_delete
-# DELETE {{BASE}}/users/{{USER_ID}}
-# Accept: application/json
-# Authorization: Bearer {{TOKEN}}
-# Content-Type: application/json
-#
-# {
-#   "password": "12345"
-# }
 
 ###
-# (Opcional) Añadir/actualizar datos de host — ajusta HostDTO a tu modelo real
-###
-# @name users_host_data
-# PUT {{BASE}}/users/{{USER_ID}}/host
-# Accept: application/json
-# Authorization: Bearer {{TOKEN}}
-# Content-Type: application/json
-#
-# {
-#   "alias": "Kevyn Host",
-#   "bio": "Anfitrión desde 2024"
-# }
-
-###
-# Listado de reservas del usuario (GET con body SearchBookingDTO)
-# Aquí enviamos un cuerpo mínimo {}
-# @name users_bookings
-GET {{BASE}}/users/{{USER_ID}}/bookings/0
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+DELETE http://localhost:8080/api/users/{id}
 Content-Type: application/json
-
-{}
-
-> {%
-    /* Intenta extraer BOOKING_ID del primer elemento si el DTO lo trae como .id */
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("BOOKING_ID", arr[0].id);
-    } catch(e) {}
-%}
-
-###
-# Lista de alojamientos del host
-# @name users_places_host
-GET {{BASE}}/users/{{USER_ID}}/places/host/0
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-> {%
-    /* Intenta extraer PLACE_ID del primer lugar (si el DTO trae .id) */
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("PLACE_ID", arr[0].id);
-    } catch(e) {}
-%}
-
-### ─────────────────────────────────────────────────────────────
-### 3) PLACES  (/api/places)
-### ─────────────────────────────────────────────────────────────
-
-# Crear alojamiento: tu mapping es POST /api/places/{id} pero internamente IGNORA ese {id}
-# Usa cualquier string no vacío (p.ej. "me")
-# @name places_create
-POST {{BASE}}/places/me
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-Content-Type: application/json
+Authorization: Bearer {{token}}
+//eliminar usuario
 
 {
-  "title": "Loft moderno en el centro",
-  "description": "Loft amplio, luz natural, parqueadero.",
-  "price": 220.0,
-  "capacity": 3,
-  "placeType": "APARTMENT",
-  "accommodationType": "ENTIRE_PLACE",
-  "country": "Colombia",
-  "department": "Quindío",
+  "password": "234565"
+}
+
+
+###
+GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
+Authorization: Bearer {{token}}
+// obtener el usuario (ver su perfil)
+
+
+###
+POST http://localhost:8080/api/bookings/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9
+Content-Type: application/json
+Authorization: Bearer {{token}}
+//crear una reserva
+
+{
+  "checkIn": "2025-11-29T14:00:00",
+  "checkOut": "2025-11-30T11:30:00",
+  "guest_number": 2
+}
+
+
+###
+GET http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/bookings/0
+Content-Type: application/json
+// ver el listado de reservas aplicando filtros
+
+{
+  "state": "COMPLETED",
+  "checkIn": "2025-09-14T14:00:00",
+  "checkOut": "2025-09-15T11:30:00",
+  "guest_number": 2
+}
+
+
+###
+DELETE http://localhost:8080/api/bookings/6d93c2c4-975a-4540-b722-4c68c40fd59b
+Authorization: Bearer {{token}}
+//eliminar cancelar reserva
+
+
+###
+GET http://localhost:8080/api/places/0
+Content-Type: application/json
+// ver la lista de alojamientos disponibles (aplicando filtros y paginación)
+
+{
   "city": "Armenia",
-  "neighborhood": "La Castellana",
-  "street": "Calle 10 # 15-22",
-  "postalCode": "630001",
-  "latitude": 4.5342,
-  "longitude": -75.6811
+  "checkIn": "2025-10-15T15:00:00",
+  "checkOut": "2025-10-20T11:00:00",
+  "guest_number": 3,
+  "minimum": 80000.0,
+  "maximum": 250000.0,
+  "list": ["WIFI", "KITCHEN"]
 }
 
-###
-# Tras crear, vuelve a listar mis places para capturar PLACE_ID
-# @name host_places_refresh
-GET {{BASE}}/users/{{USER_ID}}/places/host/0
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-> {%
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("PLACE_ID", arr[0].id);
-    } catch(e) {}
-%}
 
 ###
-# Editar alojamiento (PUT /api/places/{id})  — necesita PLACE_ID
-# @name places_edit
-PUT {{BASE}}/places/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+POST http://localhost:8080/api/places
 Content-Type: application/json
+Authorization: Bearer {{token}}
+// Crear un alojamiento
 
 {
-  "title": "Loft moderno — actualizado",
-  "description": "Ahora incluye cafetera y escritorio.",
-  "price": 240.0,
-  "capacity": 3
+  "title": "Casa en quimbaya",
+  "description": "Hermosa casa frente al mar, equipada con todas las comodidades para unas vacaciones inolvidables. Incluye piscina, terraza y acceso directo a la playa.",
+  "price": 150.0,
+  "picsUrl": [
+    "https://example.com/foto1.jpg",
+    "https://example.com/foto2.jpg"
+  ],
+  "placeType": "HOUSE",
+  "capacity": 6,
+  "country": "Colombia",
+  "department": "Atlántico",
+  "city": "Barranquilla",
+  "neighborhood": "Prado",
+  "street": "Calle 84 #45-32",
+  "postalCode": "AB12CD34",
+  "amenities": [
+    "WIFI"
+  ],
+  "latitude": 11.9685,
+  "longitude": -76.7813
 }
 
 ###
-# Eliminar alojamiento
-# @name places_delete
-DELETE {{BASE}}/places/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-###
-# Ver lista paginada con filtros (GET con body ListPlaceDTO)
-# Envía un body mínimo {} si tu DTO lo permite
-# @name places_list
-GET {{BASE}}/places/0
-Accept: application/json
+PUT http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d
 Content-Type: application/json
-
-{}
-
-###
-# Listar amenities del place
-# @name places_amenities
-GET {{BASE}}/places/{{PLACE_ID}}/amenities
-Accept: application/json
-
-###
-# Listar comentarios del place (página 0) y guardar COMMENT_ID si existe
-# @name places_comments_list
-GET {{BASE}}/places/{{PLACE_ID}}/comments/0
-Accept: application/json
-
-> {%
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("COMMENT_ID", arr[0].id);
-    } catch(e) {}
-%}
-
-###
-# Mostrar detalle público del place
-# @name places_detail
-GET {{BASE}}/places/{{PLACE_ID}}/detail
-Accept: application/json
-
-###
-# Listar reservas del place con filtros (GET con body SearchBookingDTO)
-# @name places_bookings
-GET {{BASE}}/places/{{PLACE_ID}}/bookings/0
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-Content-Type: application/json
-
-{}
-
-###
-# Estadísticas del place (GET con body StatsDateDTO)
-# @name places_stats
-GET {{BASE}}/places/{{PLACE_ID}}/stats
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-Content-Type: application/json
+Authorization: Bearer {{token}}
+//actualizar, editar alojamiento
 
 {
-  "start": "2025-01-01",
-  "end":   "2025-12-31"
+  "title": "Casa Bonita",
+  "description": "Una hermosa casa ubicada cerca del centro de la ciudad, con amplios espacios y todas las comodidades necesarias para una estadía confortable.",
+  "capacity": 4,
+  "price": 120.5,
+  "country": "Colombia",
+  "department": "Cundinamarca",
+  "city": "Bogotá",
+  "neighborhood": "Chapinero",
+  "street": "Carrera 7 #45-67",
+  "postalCode": "AB1234",
+  "pics_url": [
+    "https://example.com/img1.jpg",
+    "https://example.com/img2.jpg"
+  ],
+  "amenities": [
+    "WIFI"
+  ],
+  "placeType": "HOUSE"
 }
 
-### ─────────────────────────────────────────────────────────────
-### 4) BOOKINGS  (/api/bookings/{id})
-### ─────────────────────────────────────────────────────────────
+###
+DELETE http://localhost:8080/api/places/2b5a6d6d-1c42-4dc4-8208-09000ef22b97
+Authorization: Bearer {{token}}
+// eliminar un alojamiento (cambiar su estado)
 
-# Crear reserva: tu mapping es POST /api/bookings/{id} donde {id} es el PLACE_ID
-# @name bookings_create
-POST {{BASE}}/bookings/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+
+###
+GET http://localhost:8080/api/places/f8f6866e-10b4-4a06-91ff-1fa2eafb99d3/amenities
+// lista de todos los servicios del alojamiento
+
+
+###
+GET http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d/comments/1
+// lista de los comentarios del alojamiento
+
+
+###
+POST http://localhost:8080/api/places/238c42c0-b003-4b4e-ab0f-113314514d1b/comments
 Content-Type: application/json
+Authorization: Bearer {{token}}
+// crear un comentario a un alojamiento (reserva stado == finalizada)
 
 {
-  "checkIn": "2025-11-10T15:00:00",
-  "checkOut": "2025-11-12T11:00:00",
-  "guestNumber": 2
+  "comment": "Excelente alojamiento, muy limpio y bien ubicado. El anfitrión fue muy amable y siempre estuvo atento a nuestras necesidades. Definitivamente volvería.",
+  "rating": 5
 }
 
-###
-# Para obtener BOOKING_ID, lista mis reservas y toma la primera
-# @name users_bookings_refresh
-GET {{BASE}}/users/{{USER_ID}}/bookings/0
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-Content-Type: application/json
-
-{}
-
-> {%
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("BOOKING_ID", arr[0].id);
-    } catch(e) {}
-%}
 
 ###
-# Eliminar (cancelar) reserva: DELETE /api/bookings/{id}
-# @name bookings_delete
-DELETE {{BASE}}/bookings/{{BOOKING_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-### ─────────────────────────────────────────────────────────────
-### 5) COMMENTS & REPLIES
-### ─────────────────────────────────────────────────────────────
-
-# Crear comentario pertenece a PlaceController: POST /api/places/{bookingId}/comments
-# Usa BOOKING_ID de la reserva previa
-# @name comments_create
-POST {{BASE}}/places/{{BOOKING_ID}}/comments
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/bookings/0
 Content-Type: application/json
+// ver el listado de reservas que tiene el alojamiento
 
 {
-  "rating": 5,
-  "text": "Excelente lugar, súper recomendado."
+  "state": null,
+  "checkIn": null,
+  "checkOut": null,
+  "guest_number": null
 }
 
-###
-# Volver a listar comentarios del place para capturar COMMENT_ID
-# @name places_comments_refresh
-GET {{BASE}}/places/{{PLACE_ID}}/comments/0
-Accept: application/json
-
-> {%
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const arr = (r.data && Array.isArray(r.data)) ? r.data : [];
-        if (arr.length && arr[0].id) client.global.set("COMMENT_ID", arr[0].id);
-    } catch(e) {}
-%}
 
 ###
-# Responder comentario (tu mapping requiere {commentId} y {idUser} en la URL)
-# idUser lo tomamos del USER_ID (extraído del JWT si fue posible)
-# @name replies_create
-POST {{BASE}}/comments/{{COMMENT_ID}}/reply/{{USER_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/stats
 Content-Type: application/json
+Authorization: Bearer {{token}}
+// ver estadisticas del alojamiento
 
 {
-  "text": "¡Gracias por tu visita! 😊"
+  "startDate": "2025-09-14T14:00:00",
+  "endDate": "2025-12-31T14:00:00"
 }
 
-### ─────────────────────────────────────────────────────────────
-### 6) FAVORITES
-### ─────────────────────────────────────────────────────────────
-
-# Marcar favorito (requiere ROLE_USER)
-# @name fav_add
-POST {{BASE}}/favorites/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
 
 ###
-# ¿Es favorito este place para mí?
-# @name fav_is_mine
-GET {{BASE}}/favorites/me/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/detail
+// ver el alojamiento (GET)
+
+
 
 ###
-# Conteo de favoritos por place (público)
-# @name fav_count
-GET {{BASE}}/favorites/count/{{PLACE_ID}}
-Accept: application/json
+GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab/places/host/0
+Authorization: Bearer {{token}}
+// lista los alojamientos del host
+
+
 
 ###
-# Listado de mis favoritos (paginado)
-# @name fav_list
-GET {{BASE}}/favorites/me?page=0&size=10
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
+POST http://localhost:8080/api/comments/ba671770-bd8e-45e4-a9e5-b576a121bc1a/reply/34a29e7f-c062-4937-8d44-2d0a7304914a
+Content-Type: application/json
+Authorization: Bearer {{token}}
+//reponder un comentario
 
-###
-# Quitar de favoritos
-# @name fav_remove
-DELETE {{BASE}}/favorites/{{PLACE_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-### ─────────────────────────────────────────────────────────────
-### 7) IMAGES
-### ─────────────────────────────────────────────────────────────
-
-### Subir imagen (multipart) — AJUSTA la ruta del archivo local
-# @name images_upload
-POST {{BASE}}/images
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-Content-Type: multipart/form-data; boundary=WebAppBoundary
-
---WebAppBoundary
-Content-Disposition: form-data; name="file"; filename="foto1.jpg"
-Content-Type: image/jpeg
-
-< C:\Users\Public\Pictures\Sample Pictures\Desert.jpg
---WebAppBoundary--
-
-> {%
-    /* Guarda REPLY_ID como contenedor genérico de "public_id" si tu servicio lo devuelve en data.id o data.publicId */
-    try {
-        const r = JSON.parse(response.body || "{}");
-        const d = r.data || {};
-        const pid = d.id || d.publicId || d.public_id || "";
-        if (pid) client.global.set("REPLY_ID", pid);
-    } catch(e) {}
-%}
-
-###
-# Eliminar imagen por id (query param "id")
-# @name images_delete
-DELETE {{BASE}}/images?id={{REPLY_ID}}
-Accept: application/json
-Authorization: Bearer {{TOKEN}}
-
-### ─────────────────────────────────────────────────────────────
-### 8) CHAT (STOMP) — referencia
-### ─────────────────────────────────────────────────────────────
-# Tu ChatController es WebSocket/STOMP: ("/chat.send/{bookingId}")
-# No se invoca con HTTP. Prueba con un cliente STOMP (SockJS/StompJS) hacia tu endpoint WS.
+{
+  "reply": "gracias"
+}

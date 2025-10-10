@@ -16,7 +16,6 @@ import java.util.Optional;
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, String> {
 
-
     @Query("select p from Place p where p.user.id = :idUser")
     Page<Place> getPlaces(String idUser, Pageable pageable);
 
@@ -56,9 +55,8 @@ public interface PlaceRepository extends JpaRepository<Place, String> {
            )
       )
     """)
-    Page<Place> searchPlaces(@Param("dto") ListPlaceDTO dto, Pageable pageable);
+    Page<Place> searchPlaces(@Param("dto") ListPlaceDTO listPlaceDTO, Pageable pageable);
 
     @Query("SELECT a.user FROM Place a WHERE a.id = :placeId")
     Optional<User> findUserByPlaceId(@Param("placeId") String placeId);
-
 }

@@ -6,6 +6,6 @@ import java.util.Map;
 
 public interface ImageService {
 
-        Map upload(MultipartFile image) throws Exception;
-        Map delete(String imageId) throws Exception;
+    Map upload(MultipartFile image) throws Exception;
+    Map delete(String imageId) throws Exception;
 }

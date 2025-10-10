@@ -1,7 +1,6 @@
 package co.edu.uniquindio.application.dto.commentDTO;
 
 import co.edu.uniquindio.application.dto.userDTO.UserCommentDTO;
-import co.edu.uniquindio.application.dto.userDTO.UserDTO;
 import java.time.LocalDateTime;
 
 public record CommentDTO(String comment,

@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
+@Table(name = "comments")
 public class Comment {
 
     @Id
@@ -25,8 +27,8 @@ public class Comment {
     @Column(nullable = false)
     private int rating;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private Place place;
 
     @ManyToOne(optional = false)

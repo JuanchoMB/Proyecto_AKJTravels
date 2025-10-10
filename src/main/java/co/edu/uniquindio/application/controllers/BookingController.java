@@ -32,4 +32,5 @@ public class BookingController {
         bookingService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "reserva eliminada"));
     }
+
 }

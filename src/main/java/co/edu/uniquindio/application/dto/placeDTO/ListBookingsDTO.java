@@ -10,5 +10,6 @@ public record ListBookingsDTO(
         BookingState bookingState,
         @FutureOrPresent LocalDateTime checkIn,
         @Future LocalDateTime checkOut,
-        int guest_number) {
+        int guest_number
+) {
 }

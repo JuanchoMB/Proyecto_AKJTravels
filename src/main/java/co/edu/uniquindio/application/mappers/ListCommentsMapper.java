@@ -7,18 +7,25 @@ import co.edu.uniquindio.application.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Mappings;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ListCommentsMapper {
 
-    // createdAt -> commentDate; user lo convertimos con el método default
-    @Mapping(source = "createdAt", target = "commentDate")
-    @Mapping(source = "user", target = "user")
+    @Mappings({
+            @Mapping(target = "id", source = "id"),
+            @Mapping(target = "comment", source = "comment"),
+            @Mapping(target = "rating", source = "rating"),
+            @Mapping(target = "createdAt", source = "createdAt"),
+            @Mapping(target = "authorId", source = "user.id"),
+            @Mapping(target = "authorName", source = "user.name"),
+            @Mapping(target = "authorPhoto", source = "user.photoUrl")
+    })
     CommentDTO ToCommentDTO(Comment comment);
 
-    // Auxiliary: User -> UserCommentDTO
+    // Método auxiliar para mapear User a UserCommentDTO
     default UserCommentDTO mapUser(User user){
-        if (user == null) return null;
+        if(user == null) return null;
         return new UserCommentDTO(user.getName(), user.getPhotoUrl());
     }
 }

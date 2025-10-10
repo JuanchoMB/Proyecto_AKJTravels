@@ -28,4 +28,5 @@ public class Location {
 
     @Embedded
     private Coordinates coordinates;
+
 }

@@ -1,37 +1,44 @@
 package co.edu.uniquindio.application.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
 @Entity
-@Table(name = "favorites",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id","place_id"}))
+@Table(
+        name = "favorites",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_favorite_user_place",
+                columnNames = {"user_id", "place_id"}
+        )
+)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Favorite {
 
-    @EmbeddedId
-    private FavoriteId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) @MapsId("userId")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY) @MapsId("placeId")
-    @JoinColumn(name = "place_id", nullable = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "place_id",
+            nullable = false,
+            columnDefinition = "char(36)",                // **MISMA** definición que Place.id
+            foreignKey = @ForeignKey(name = "fk_favorite_place")
+    )
     private Place place;
 
-    @Column(nullable = false)
-    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public Favorite() {}
-
-    public Favorite(User user, Place place) {
-        this.user = user;
-        this.place = place;
-        this.id = new FavoriteId(user.getId(), place.getId());
-    }
+    @PrePersist
+    void prePersist() { this.createdAt = LocalDateTime.now(); }
 }

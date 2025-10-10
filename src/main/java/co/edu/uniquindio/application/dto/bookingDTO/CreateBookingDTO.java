@@ -8,5 +8,6 @@ import java.time.LocalDateTime;
 public record CreateBookingDTO(@NotNull @FutureOrPresent LocalDateTime checkIn,
                                @NotNull @Future LocalDateTime checkOut,
                                @NotNull int guest_number
+
 ) {
 }

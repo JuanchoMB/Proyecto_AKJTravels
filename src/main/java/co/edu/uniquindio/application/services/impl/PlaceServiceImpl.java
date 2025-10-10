@@ -6,8 +6,8 @@ import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.exceptions.UnauthorizedException;
 import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.*;
-import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Place;
+import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.Amenities;
 import co.edu.uniquindio.application.model.enums.BookingState;
@@ -86,7 +86,7 @@ public class PlaceServiceImpl implements PlaceService {
         if(place.isEmpty()){
             throw new ResourceNotFoundException("Place not found");
         }
-        placeMapper.EditPlaceFromDto(editPlaceDTO, place.get());
+       placeMapper.editPlaceFromDto(editPlaceDTO, place.get());
 
         placeRepository.save(place.get());
     }

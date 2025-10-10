@@ -22,5 +22,6 @@ public record EditPlaceDTO(@Size(min = 5, max = 25, message = "El título debe t
                            @NotEmpty List<String> pics_url,
                            @NotEmpty List<Amenities> amenities,
                            @NotNull PlaceType placeType
+
 ) {
 }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface HostRepository extends JpaRepository<HostProfile, String>{
+public interface HostRepository extends JpaRepository<HostProfile, String> {
 
     Optional<HostProfile> findByUserId(String id);
 }
