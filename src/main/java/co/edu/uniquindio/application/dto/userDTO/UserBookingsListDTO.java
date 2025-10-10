@@ -11,6 +11,5 @@ public record UserBookingsListDTO(
         @Future LocalDateTime checkOut,
         int guest_number
 
-
-) {
+    ) {
 }

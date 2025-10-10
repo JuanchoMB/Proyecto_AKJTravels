@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
+import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.services.BookingService;
 import co.edu.uniquindio.application.services.CurrentUserService;
 import jakarta.validation.Valid;

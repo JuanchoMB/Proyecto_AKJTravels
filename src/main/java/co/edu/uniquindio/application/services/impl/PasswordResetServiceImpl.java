@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.config.SecurityConfig;
 import co.edu.uniquindio.application.dto.externalServiceDTO.SendEmailDTO;
 import co.edu.uniquindio.application.dto.userDTO.RequestResetPasswordDTO;
 import co.edu.uniquindio.application.dto.userDTO.ResetPasswordDTO;
@@ -12,11 +13,15 @@ import co.edu.uniquindio.application.services.EmailService;
 import co.edu.uniquindio.application.services.PasswordResetService;
 import co.edu.uniquindio.application.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

@@ -1,20 +1,20 @@
 package co.edu.uniquindio.application.controllers;
 
-import co.edu.uniquindio.application.dto.ResponseDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.commentDTO.CommentDTO;
 import co.edu.uniquindio.application.dto.commentDTO.CreateCommentDTO;
+import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.placeDTO.*;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.services.BookingService;
 import co.edu.uniquindio.application.services.CommentService;
 import co.edu.uniquindio.application.services.PlaceService;
-import co.edu.uniquindio.application.services.BookingService;
-import org.springframework.security.core.context.SecurityContextHolder;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

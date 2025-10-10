@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 
@@ -11,7 +12,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "comments")
 public class Comment {
 
     @Id

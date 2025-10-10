@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
 
 
         //la mapeamos y la guardamos en la DB
-        Booking booking = bookingMapper.toEntity(createBookingDTO);
+        Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
         bookingRepository.save(booking);
 
     }

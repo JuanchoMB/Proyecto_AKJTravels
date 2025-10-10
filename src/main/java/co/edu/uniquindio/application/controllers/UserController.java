@@ -4,7 +4,7 @@ import co.edu.uniquindio.application.dto.*;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.hostDTO.HostDTO;
-import co.edu.uniquindio.application.dto.userDTO.EditUserDTO;
+import co.edu.uniquindio.application.dto.placeDTO.PlaceDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
 import co.edu.uniquindio.application.services.PlaceService;
 import co.edu.uniquindio.application.services.BookingService;
@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import co.edu.uniquindio.application.dto.placeDTO.*;
 
 import java.util.*;
 
@@ -29,7 +28,7 @@ public class UserController {
 
 
     @PutMapping(("/{id}"))
-    public ResponseEntity<ResponseDTO<String>> update(@PathVariable String id, @Valid @RequestBody EditUserDTO editUserDTO) throws Exception {
+    public ResponseEntity<ResponseDTO<String>> edit(@PathVariable String id, @Valid @RequestBody EditUserDTO editUserDTO) throws Exception {
         userService.edit(id, editUserDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "actualizacion exitosa :)"));
     }

@@ -6,19 +6,14 @@ import co.edu.uniquindio.application.model.Place;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.Mappings;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ShowPlaceMapper {
 
-    @Mappings({
-            @Mapping(target = "id", source = "id"),
-            @Mapping(target = "title", source = "title"),
-            @Mapping(target = "city", source = "location.city"),
-            @Mapping(target = "price", source = "price"),
-            @Mapping(target = "averageRatings", source = "averageRatings"),
-            @Mapping(target = "picsUrl", source = "picsUrl")
-    })
+    // Para el listado (resumen)
+    @Mapping(target = "photo_url", expression = "java(place.getPics_url() != null && !place.getPics_url().isEmpty() ? place.getPics_url().get(0) : null)")
+    @Mapping(target = "city", source = "place.location.city")
+    @Mapping(target = "average_rating", source = "averageRatings")
     PlaceDTO toPlaceDTO(Place place);
 
 

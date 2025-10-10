@@ -3,6 +3,8 @@ package co.edu.uniquindio.application.model;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
@@ -11,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "bookings")
 public class Booking {
 
     @Id

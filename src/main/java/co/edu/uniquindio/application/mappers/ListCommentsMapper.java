@@ -7,20 +7,12 @@ import co.edu.uniquindio.application.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
-import org.mapstruct.Mappings;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ListCommentsMapper {
 
-    @Mappings({
-            @Mapping(target = "id", source = "id"),
-            @Mapping(target = "comment", source = "comment"),
-            @Mapping(target = "rating", source = "rating"),
-            @Mapping(target = "createdAt", source = "createdAt"),
-            @Mapping(target = "authorId", source = "user.id"),
-            @Mapping(target = "authorName", source = "user.name"),
-            @Mapping(target = "authorPhoto", source = "user.photoUrl")
-    })
+    @Mapping(source = "user", target = "user")
+
     CommentDTO ToCommentDTO(Comment comment);
 
     // Método auxiliar para mapear User a UserCommentDTO

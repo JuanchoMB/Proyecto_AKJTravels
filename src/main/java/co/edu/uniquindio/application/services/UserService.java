@@ -2,7 +2,8 @@ package co.edu.uniquindio.application.services;
 
 import co.edu.uniquindio.application.dto.authDTO.LoginDTO;
 import co.edu.uniquindio.application.dto.authDTO.TokenDTO;
-
+import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.hostDTO.HostDTO;
 import co.edu.uniquindio.application.dto.userDTO.*;
 import co.edu.uniquindio.application.model.User;

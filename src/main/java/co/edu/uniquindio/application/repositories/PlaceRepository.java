@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -55,7 +56,7 @@ public interface PlaceRepository extends JpaRepository<Place, String> {
            )
       )
     """)
-    Page<Place> searchPlaces(@Param("dto") ListPlaceDTO listPlaceDTO, Pageable pageable);
+    Page<Place> searchPlaces(@Param("dto") ListPlaceDTO dto, Pageable pageable);
 
     @Query("SELECT a.user FROM Place a WHERE a.id = :placeId")
     Optional<User> findUserByPlaceId(@Param("placeId") String placeId);

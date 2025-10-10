@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface PlaceService {
 
-    void create(String id, CreatePlaceDTO createPlaceDTO) throws Exception;
+    void create(String id, CreatePlaceDTO createAccommodationDTO) throws Exception;
     void edit(String id, EditPlaceDTO editPlaceDTO) throws Exception;
     void delete(String id) throws Exception;
     // List<BookingDTO> listAll(ListBookingsDTO listBookingsDTO) throws Exception;

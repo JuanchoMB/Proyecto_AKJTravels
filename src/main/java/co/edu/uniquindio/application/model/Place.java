@@ -4,16 +4,18 @@ import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.model.enums.PlaceType;
 import co.edu.uniquindio.application.model.enums.Amenities;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "places")
 public class Place {
 
     @Id
@@ -29,10 +31,10 @@ public class Place {
     @ElementCollection
     @CollectionTable(
             name = "pics_urls", // tabla intermedia
-            joinColumns = @JoinColumn(name = "place_id") // FK a Place
+            joinColumns = @JoinColumn(name = "place_id") // FK a place
     )
     @Column(name = "pics_url")
-    private List<String> picsUrl;
+    private List<String> pics_url;
 
     @Lob
     @Column(nullable = false)

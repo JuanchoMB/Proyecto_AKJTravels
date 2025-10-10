@@ -10,14 +10,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record ListPlaceDTO(
-        @Length(max = 30) String city,
-        @FutureOrPresent LocalDateTime checkIn,
-        @Future LocalDateTime checkOut,
-        @Positive Integer guest_number,
-        @PositiveOrZero Double minimum,
-        @PositiveOrZero Double maximum,
-        List<Amenities> list
+public record ListPlaceDTO( @Length(max = 30) String city,
+                            @FutureOrPresent LocalDateTime checkIn,
+                            @Future LocalDateTime checkOut,
+                            @Positive Integer guest_number,
+                            @PositiveOrZero Double minimum,
+                            @PositiveOrZero Double maximum,
+                            List<Amenities> list
 
 ) {
 }

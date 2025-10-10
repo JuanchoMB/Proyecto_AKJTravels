@@ -25,7 +25,5 @@ public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
                             @Size(min = 6, message = "Contraseña debe tener al menos 6 caracteres")
                             String password,
                             @NotNull Role role
-) {
-
-
+    ) {
 }

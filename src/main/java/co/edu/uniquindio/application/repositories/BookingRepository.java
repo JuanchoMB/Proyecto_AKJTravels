@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +102,7 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     SELECT COALESCE(SUM(a.price), 0)
     FROM Booking b
     JOIN b.place a
-    WHERE a.id = :placeId
+    WHERE a.id = :accommodationId
       AND b.bookingState = co.edu.uniquindio.application.model.enums.BookingState.COMPLETED
       AND (:startDate IS NULL OR b.checkIn >= :startDate)
       AND (:endDate IS NULL OR b.checkOut <= :endDate)
