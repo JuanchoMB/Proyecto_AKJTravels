@@ -69,15 +69,15 @@ Content-Type: application/json
 //registrarse
 
 {
-  "name": "samuel",
-  "surname": "andres",
-  "email": "kevyn.ramirezg@uqvirtual.edu.co",
-  "phone": "31934232",
-  "birthDate": "2005-02-23",
-  "password": "perroGato123",
+  "name": "Mariana",
+  "surname": "Felipa",
+  "email": "mg5002006@gmail.com",
+  "phone": "3232910705",
+  "birthDate": "2006-11-14",
+  "password": "pepajorge",
   "photoUrl": "dfdsfdsfsdfsdfs",
   "country": "colombia",
-  "role": "HOST"
+  "role": "USER"
 }
 
 ###
