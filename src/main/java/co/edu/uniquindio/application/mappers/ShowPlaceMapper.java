@@ -6,9 +6,12 @@ import co.edu.uniquindio.application.model.Place;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface ShowPlaceMapper {
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)public interface ShowPlaceMapper {
 
     // Para el listado (resumen)
     @Mapping(target = "photo_url", expression = "java(place.getPics_url() != null && !place.getPics_url().isEmpty() ? place.getPics_url().get(0) : null)")

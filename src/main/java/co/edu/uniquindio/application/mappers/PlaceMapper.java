@@ -3,13 +3,12 @@ package co.edu.uniquindio.application.mappers;
 import co.edu.uniquindio.application.dto.placeDTO.CreatePlaceDTO;
 import co.edu.uniquindio.application.dto.placeDTO.EditPlaceDTO;
 import co.edu.uniquindio.application.model.Place;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.MappingTarget;
+import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface PlaceMapper {
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)public interface PlaceMapper {
 
     //convierte de dto a entidad y viceversa, crea automaticamente:
     @Mapping(target = "location.country", source = "country")

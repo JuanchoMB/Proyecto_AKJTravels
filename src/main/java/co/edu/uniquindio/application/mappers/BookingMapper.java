@@ -8,10 +8,12 @@ import co.edu.uniquindio.application.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface
-BookingMapper {
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)public interface BookingMapper {
 
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "bookingState", constant = "COMPLETED")

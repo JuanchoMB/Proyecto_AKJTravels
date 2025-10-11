@@ -7,9 +7,12 @@ import co.edu.uniquindio.application.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface PlaceDetailMapper {
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)public interface PlaceDetailMapper {
 
     @Mapping(source = "user", target = "userDetailDTO")
     @Mapping(source = "location.coordinates.latitude", target = "latitude")

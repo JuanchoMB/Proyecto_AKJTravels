@@ -5,7 +5,10 @@ import co.edu.uniquindio.application.dto.userDTO.UserDTO;
 import co.edu.uniquindio.application.model.User;
 import org.mapstruct.*;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(
+        componentModel = MappingConstants.ComponentModel.SPRING,
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface UserMapper {
 
     //convierte de dto a entidad y viceversa, crea automaticamente el id, estado y fecha de creación de la cuenta

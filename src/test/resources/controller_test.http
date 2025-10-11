@@ -149,7 +149,7 @@ Authorization: Bearer {{token}}
 
 
 ###
-GET http://localhost:8080/api/accommodations/0
+GET http://localhost:8080/api/places/0
 Content-Type: application/json
 // ver la lista de alojamientos disponibles (aplicando filtros y paginación)
 
@@ -165,7 +165,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:8080/api/accommodations
+POST http://localhost:8080/api/places
 Content-Type: application/json
 Authorization: Bearer {{token}}
 // Crear un alojamiento
@@ -178,7 +178,7 @@ Authorization: Bearer {{token}}
     "https://example.com/foto1.jpg",
     "https://example.com/foto2.jpg"
   ],
-  "accommodationType": "HOUSE",
+  "placeType": "HOUSE",
   "capacity": 6,
   "country": "Colombia",
   "department": "Atlántico",
@@ -194,7 +194,7 @@ Authorization: Bearer {{token}}
 }
 
 ###
-PUT http://localhost:8080/api/accommodations/adee0a6e-e335-42b3-986b-c4628d98420d
+PUT http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d
 Content-Type: application/json
 Authorization: Bearer {{token}}
 //actualizar, editar alojamiento
@@ -217,27 +217,27 @@ Authorization: Bearer {{token}}
   "amenities": [
     "WIFI"
   ],
-  "accommodationType": "HOUSE"
+  "placeType": "HOUSE"
 }
 
 ###
-DELETE http://localhost:8080/api/accommodations/2b5a6d6d-1c42-4dc4-8208-09000ef22b97
+DELETE http://localhost:8080/api/places/2b5a6d6d-1c42-4dc4-8208-09000ef22b97
 Authorization: Bearer {{token}}
 // eliminar un alojamiento (cambiar su estado)
 
 
 ###
-GET http://localhost:8080/api/accommodations/f8f6866e-10b4-4a06-91ff-1fa2eafb99d3/amenities
+GET http://localhost:8080/api/places/f8f6866e-10b4-4a06-91ff-1fa2eafb99d3/amenities
 // lista de todos los servicios del alojamiento
 
 
 ###
-GET http://localhost:8080/api/accommodations/adee0a6e-e335-42b3-986b-c4628d98420d/comments/1
+GET http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d/comments/1
 // lista de los comentarios del alojamiento
 
 
 ###
-POST http://localhost:8080/api/accommodations/238c42c0-b003-4b4e-ab0f-113314514d1b/comments
+POST http://localhost:8080/api/places/238c42c0-b003-4b4e-ab0f-113314514d1b/comments
 Content-Type: application/json
 Authorization: Bearer {{token}}
 // crear un comentario a un alojamiento (reserva stado == finalizada)
@@ -249,7 +249,7 @@ Authorization: Bearer {{token}}
 
 
 ###
-GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/bookings/0
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/bookings/0
 Content-Type: application/json
 // ver el listado de reservas que tiene el alojamiento
 
@@ -262,7 +262,7 @@ Content-Type: application/json
 
 
 ###
-GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/stats
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/stats
 Content-Type: application/json
 Authorization: Bearer {{token}}
 // ver estadisticas del alojamiento
@@ -274,13 +274,13 @@ Authorization: Bearer {{token}}
 
 
 ###
-GET http://localhost:8080/api/accommodations/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/detail
+GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/detail
 // ver el alojamiento (GET)
 
 
 
 ###
-GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab/accommodations/host/0
+GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab/places/host/0
 Authorization: Bearer {{token}}
 // lista los alojamientos del host
 

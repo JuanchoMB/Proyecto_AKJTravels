@@ -739,10 +739,10 @@ paths:
                 error: "ServerError"
                 message: "Ocurrió un error inesperado"
 
-  /accommodations:
+  /places:
     get:
       summary: Buscar alojamientos disponibles
-      operationId: searchAccommodations
+      operationId: searchPlaces
       parameters:
         - name: city
           in: query
@@ -766,7 +766,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AccommodationResponse'
+                  $ref: '#/components/schemas/PlaceResponse'
               example:
                 - id: "10"
                   city: "medellin"
@@ -916,7 +916,7 @@ components:
           type: string
           enum: [pending, confirmed, cancelled, finished]
 
-    AccommodationResponse:
+    PlaceResponse:
       type: object
       properties:
         id:

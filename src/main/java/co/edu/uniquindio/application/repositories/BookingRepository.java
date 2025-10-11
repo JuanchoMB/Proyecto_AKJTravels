@@ -102,7 +102,7 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     SELECT COALESCE(SUM(a.price), 0)
     FROM Booking b
     JOIN b.place a
-    WHERE a.id = :accommodationId
+    WHERE a.id = :placeId
       AND b.bookingState = co.edu.uniquindio.application.model.enums.BookingState.COMPLETED
       AND (:startDate IS NULL OR b.checkIn >= :startDate)
       AND (:endDate IS NULL OR b.checkOut <= :endDate)
