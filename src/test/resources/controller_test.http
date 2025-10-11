@@ -10,8 +10,8 @@ Authorization: Bearer {{token}}
 //cambiar contraseña
 
 {
-  "old_password": "perroGato123",
-  "new_password": "3435555555"
+  "old_password": "juancho",
+  "new_password": "juancho12"
 }
 
 ###
@@ -34,8 +34,8 @@ Content-Type: application/json
 // login
 
 {
-  "email": "kevyn.ramirezg@uqvirtual.edu.co",
-  "password": "sofialamejor"
+  "email": "juand.mejiab@uqvirtual.edu.co",
+  "password": "juancho"
 }
 
 > {% client.global.set("token", response.body.message.token); %}
@@ -47,7 +47,7 @@ Content-Type: application/json
 // solicitar codigo para cambiar la contraseña
 
 {
-  "email": "kevyn.ramirezg@uqvirtual.edu.co"
+  "email": "juand.mejiab@uqvirtual.edu.co"
 }
 
 
@@ -57,9 +57,9 @@ Content-Type: application/json
 //cambiar contraseña olvidada
 
 {
-  "code": "966152",
-  "email": "kevyn.ramirezg@uqvirtual.edu.co",
-  "newPassword": "sofialamejor"
+  "code": "160075",
+  "email": "juand.mejiab@uqvirtual.edu.co",
+  "newPassword": "juancho12"
 }
 
 
@@ -69,15 +69,15 @@ Content-Type: application/json
 //registrarse
 
 {
-  "name": "Mariana",
-  "surname": "Felipa",
-  "email": "mg5002006@gmail.com",
-  "phone": "3232910705",
-  "birthDate": "2006-11-14",
-  "password": "pepajorge",
+  "name": "Juan",
+  "surname": "Mejia",
+  "email": "juand.mejiab@uqvirtual.edu.co",
+  "phone": "3227596573",
+  "birthDate": "2005-04-27",
+  "password": "juancho",
   "photoUrl": "dfdsfdsfsdfsdfs",
   "country": "colombia",
-  "role": "USER"
+  "role": "HOST"
 }
 
 ###
@@ -92,8 +92,8 @@ Authorization: Bearer {{token}}
 //editar datos del usuario
 
 {
-  "name": "samu",
-  "phone": "31932404",
+  "name": "kevyn",
+  "phone": "3102381183",
   "photoUrl": "http://mnt/data/ff6a4b1e-5eda-40ec-8903-aeaaa1ae0b83.png",
   "birthDate": "2005-02-22"
 }
@@ -106,7 +106,7 @@ Authorization: Bearer {{token}}
 //eliminar usuario
 
 {
-  "password": "234565"
+  "password": "juancho12"
 }
 
 
@@ -171,7 +171,7 @@ Authorization: Bearer {{token}}
 // Crear un alojamiento
 
 {
-  "title": "Casa en quimbaya",
+  "title": "Casa en pitalito",
   "description": "Hermosa casa frente al mar, equipada con todas las comodidades para unas vacaciones inolvidables. Incluye piscina, terraza y acceso directo a la playa.",
   "price": 150.0,
   "picsUrl": [

@@ -60,7 +60,7 @@ public class PlaceController {
 
     //listar los servicios del alojamiento (hecho)
     @GetMapping("/{id}/amenities")
-    public ResponseEntity<ResponseDTO<List<Amenities>>> listAamenities(@PathVariable String id) throws Exception {
+    public ResponseEntity<ResponseDTO<List<Amenities>>> listAmenities(@PathVariable String id) throws Exception {
         List<Amenities> list = placeService.listAllAmenities(id);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
