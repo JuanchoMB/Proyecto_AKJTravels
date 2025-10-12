@@ -10,7 +10,7 @@ Authorization: Bearer {{token}}
 //cambiar contraseña
 
 {
-  "old_password": "juancho",
+  "old_password": "alex414",
   "new_password": "juancho12"
 }
 
@@ -34,8 +34,8 @@ Content-Type: application/json
 // login
 
 {
-  "email": "juand.mejiab@uqvirtual.edu.co",
-  "password": "juancho"
+  "email": "alexdavidgutierrez414@gmail.com",
+  "password": "alex414"
 }
 
 > {% client.global.set("token", response.body.message.token); %}
@@ -47,7 +47,7 @@ Content-Type: application/json
 // solicitar codigo para cambiar la contraseña
 
 {
-  "email": "juand.mejiab@uqvirtual.edu.co"
+  "email": "alexdavidgutierrez414@gmail.com"
 }
 
 
@@ -57,9 +57,9 @@ Content-Type: application/json
 //cambiar contraseña olvidada
 
 {
-  "code": "160075",
-  "email": "juand.mejiab@uqvirtual.edu.co",
-  "newPassword": "juancho12"
+  "code": "538951",
+  "email": "alexdavidgutierrez414@gmail.com",
+  "newPassword": "alex111"
 }
 
 
@@ -69,12 +69,12 @@ Content-Type: application/json
 //registrarse
 
 {
-  "name": "Juan",
-  "surname": "Mejia",
-  "email": "juand.mejiab@uqvirtual.edu.co",
+  "name": "Alex",
+  "surname": "Jurado",
+  "email": "alexdavidgutierrez414@gmail.com",
   "phone": "3227596573",
   "birthDate": "2005-04-27",
-  "password": "juancho",
+  "password": "alex414",
   "photoUrl": "dfdsfdsfsdfsdfs",
   "country": "colombia",
   "role": "HOST"
@@ -171,7 +171,7 @@ Authorization: Bearer {{token}}
 // Crear un alojamiento
 
 {
-  "title": "Casa en pitalito",
+  "title": "Casa en Armeniacity",
   "description": "Hermosa casa frente al mar, equipada con todas las comodidades para unas vacaciones inolvidables. Incluye piscina, terraza y acceso directo a la playa.",
   "price": 150.0,
   "picsUrl": [
