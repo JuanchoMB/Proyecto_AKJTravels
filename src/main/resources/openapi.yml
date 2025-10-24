@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: API de Reservas y Alojamiento
+  title: API de AKJ Travles
   version: 1.0.1
 servers:
   - url: http://localhost:8080
@@ -17,10 +17,10 @@ paths:
             schema:
               $ref: '#/components/schemas/UserRegistration'
             example:
-              name: "Samuel"
-              surname: "Andrés"
-              email: "samuel@mail.com"
-              phone: "3101234567"
+              name: "Kevyn"
+              surname: "Fel"
+              email: "kevyn@mail.com"
+              phone: "3102381183"
               birthDate: "2005-01-01"
               country: "Colombia"
               password: "MiPassword123"
@@ -33,9 +33,9 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
               example:
                 id: "1"
-                name: "Samuel"
-                surname: "Andrés"
-                email: "samuel@mail.com"
+                name: "Kevyn"
+                surname: "Fel"
+                email: "Kevyn@mail.com"
         '201':
           description: CREATED
           content:
@@ -89,10 +89,10 @@ paths:
             schema:
               $ref: '#/components/schemas/UserUpdate'
             example:
-              name: "Samuel"
+              name: "Kevyn"
               surname: "Andrés"
-              phone: "3101234567"
-              profilePicture: "https://miapp.com/profile/samuel.png"
+              phone: "3102381183"
+              profilePicture: "https://miapp.com/profile/Kevyn.png"
       responses:
         '200':
           description: Usuario actualizado correctamente
@@ -102,9 +102,9 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
               example:
                 id: "1"
-                name: "Samuel"
-                surname: "Andrés"
-                email: "samuel@mail.com"
+                name: "Kevyn"
+                surname: "Fel"
+                email: "Kevyn@mail.com"
         '400':
           description: BAD REQUEST (Faltan datos que son requeridos)
           content:
@@ -331,7 +331,7 @@ paths:
             schema:
               $ref: '#/components/schemas/LoginRequest'
             example:
-              email: "samuel@mail.com"
+              email: "Kevyn@mail.com"
               password: "MiPassword123"
       responses:
         '200':
@@ -382,7 +382,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RecoverPasswordRequest'
             example:
-              email: "samuel@mail.com"
+              email: "Kevyn@mail.com"
               verificationCode: "123456"
               newPassword: "NuevaPassword123"
       responses:
