@@ -26,13 +26,9 @@ import org.mapstruct.*;
     @Mapping(target = "averageRatings", constant = "0")
     @Mapping(target = "comments", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    //@Mapping(target = "user", source = "user")
 
     Place toEntity(CreatePlaceDTO createPlaceDTO);
-
-
     CreatePlaceDTO toCreatePlaceDTO(Place place);
-
     void editPlaceFromDto(EditPlaceDTO editPlaceDTO, @MappingTarget Place place);
 
 }

@@ -19,7 +19,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
 
 @Configuration
@@ -31,11 +30,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Configura la seguridad HTTP para la aplicación
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session ->
+                http.csrf(AbstractHttpConfigurer::disable).cors(cors -> cors.configurationSource(corsConfigurationSource())).sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
                                 .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll() //listar o .... gets
@@ -45,13 +40,10 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER", "HOST")
                                 .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
                                 .requestMatchers(
-                                        "/api/auth/**",       // login, registro
-                                        "/ws-chat/**",        // endpoint WebSocket
-                                        "/app/**"             // destino STOMP del cliente
+                                        "/api/auth/**",
+                                        "/app/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
-                        //.requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        //  .requestMatchers("/api/bookings/**").hasAnyRole("USER", "HOST")
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -61,7 +53,6 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        // Configura las políticas de CORS para permitir solicitudes desde el frontend
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
@@ -75,14 +66,12 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Permite codificar y verificar contraseñas utilizando BCrypt
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
             throws Exception {
-        // Proporciona un AuthenticationManager para la autenticación de usuarios
         return configuration.getAuthenticationManager();
     }
 }

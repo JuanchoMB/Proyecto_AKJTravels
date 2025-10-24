@@ -2,14 +2,12 @@ package co.edu.uniquindio.application.model;
 
 import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.model.enums.PlaceType;
-import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.model.enums.Services;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -30,8 +28,8 @@ public class Place {
 
     @ElementCollection
     @CollectionTable(
-            name = "pics_urls", // tabla intermedia
-            joinColumns = @JoinColumn(name = "place_id") // FK a place
+            name = "pics_urls",
+            joinColumns = @JoinColumn(name = "place_id")
     )
     @Column(name = "pics_url")
     private List<String> pics_url;
@@ -43,7 +41,7 @@ public class Place {
     @ElementCollection
     @CollectionTable(joinColumns = @JoinColumn(name = "place_id"))
     @Column(name = "amenitie")
-    private List<Amenities> amenities;
+    private List<Services> amenities;
 
     @Column(nullable = false, length = 50)
     private String title;

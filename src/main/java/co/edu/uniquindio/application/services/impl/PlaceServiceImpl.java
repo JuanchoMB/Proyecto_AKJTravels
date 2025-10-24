@@ -9,7 +9,7 @@ import co.edu.uniquindio.application.mappers.*;
 import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
-import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.model.enums.Services;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.repositories.BookingRepository;
@@ -23,10 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import co.edu.uniquindio.application.services.GeoUtils;
-
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,12 +32,10 @@ import java.util.stream.Collectors;
 public class PlaceServiceImpl implements PlaceService {
 
     private final PlaceMapper placeMapper;
-    private final Map<String, Place> placeStore = new ConcurrentHashMap<>();
     private final ShowPlaceMapper showPlaceMapper;
     private final PlaceRepository placeRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
     private final CommentRepository commentRepository;
     private final StatsMapper statsMapper;
     private final PlaceDetailMapper placeDetailMapper;
@@ -66,13 +62,13 @@ public class PlaceServiceImpl implements PlaceService {
     private boolean verifyExistence(CreatePlaceDTO createPlaceDTO) {
 
         for (Place place : placeRepository.findByState(State.ACTIVE)) {
-            double distancia = GeoUtils.calcularDistancia(
+            double distancia = GeoUtils.calcularDistanciaUbi(
                     createPlaceDTO.latitude(), createPlaceDTO.longitude(),
                     place.getLocation().getCoordinates().getLatitude(),
                     place.getLocation().getCoordinates().getLongitude()
             );
 
-            if (distancia <= 5 && place.getTitle().equalsIgnoreCase(createPlaceDTO.title())) { // 10 metros de umbral
+            if (distancia <= 5 && place.getTitle().equalsIgnoreCase(createPlaceDTO.title())) {
                 return true;
             }
         }
@@ -93,14 +89,12 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
 
-    //eliminar un alojamiento que no tenga reservas
     @Override
     public void delete(String id) throws Exception {
         Optional<Place> place = placeRepository.findById(id);
         if(place.isEmpty()){
             throw new ResourceNotFoundException("No se encontró el alojamiento");
         }
-        //me trae todas las reservas del alojamiento cuyo estado sea pendiente
         Optional<Booking> booking = bookingRepository.findByPlaceIdAndBookingState(id, BookingState.PENDING);
         if(booking.isPresent()){
             throw new UnauthorizedException("no puedes eliminar este alojamiento, tiene reservas pendientes");
@@ -109,17 +103,6 @@ public class PlaceServiceImpl implements PlaceService {
         placeRepository.save(place.get());
     }
 
-
-    /* ya está en bookingService pero lo dejo comentado (pendiente a revisar)
-    //Es para listar las reservas de un alojamiento? si es así deben enviar el id del alojamiento no una lista
-    @Override
-    public List<BookingDTO> listAll(ListBookingsDTO listBookingsDTO) throws Exception {
-
-
-        return List.of();
-    }*/
-
-    // filtro de busqueda de los alojamientos (rango minimo - maximo precio y servicios added )
     @Override
     public List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception {
 
@@ -138,19 +121,16 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
 
-    // devuelve la lista de todos los servicios del alojamiento
     @Override
-    public List<Amenities> listAllAmenities(String id) throws Exception {
+    public List<Services> listAllAmenities(String id) throws Exception {
 
         Optional<Place> place = placeRepository.findById(id);
         if(place.isPresent()){
             return place.get().getAmenities();
         }
-        // o con este se resume más: .orElseThrow(() -> new ResourceNotFoundException("No se encontraron servicios del alojamiento"));
         throw new ResourceNotFoundException("No se encontraron servicios del alojamiento");
     }
 
-    //stats del alojamiento, se puede aplicar rango de fechas
     @Override
     public PlaceStatsDTO stats(String id, StatsDateDTO statsDateDTO) throws Exception {
 
@@ -160,7 +140,7 @@ public class PlaceServiceImpl implements PlaceService {
         double occupancy = bookingRepository.findAverageOccupancyByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
         long totalDays = (statsDateDTO.startDate() != null && statsDateDTO.endDate() != null)
                 ? ChronoUnit.DAYS.between(statsDateDTO.startDate(), statsDateDTO.endDate())
-                : 30; // se calcula el promedio de 30 dias si el usuario no pasa fechas
+                : 30;
 
         double occupancyRate = totalDays > 0 ? (occupancy / totalDays) * 100 : 0.0;
         int cancellations = bookingRepository.countCancellationsByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
@@ -169,7 +149,6 @@ public class PlaceServiceImpl implements PlaceService {
         return statsMapper.toPlaceStatsDTO(averageRating, totalComments, totalReservations, occupancyRate, cancellations, totalRevenue);
     }
 
-    //Corregido (pendiente), se debe crear una consulta que dado el id del host, se traiga sus alojamientos.
     @Override
     public List<PlaceDTO> listAllPlacesHost(String id, int page) throws Exception {
         Pageable pageable = PageRequest.of(page, 10);
@@ -178,7 +157,6 @@ public class PlaceServiceImpl implements PlaceService {
         return places.toList().stream().map(showPlaceMapper::toPlaceDTO).collect(Collectors.toList());
     }
 
-    // para ver el alojamiento
     @Override
     public PlaceDetailDTO get(String id) throws Exception {
         Optional<Place> place = placeRepository.findById(id);

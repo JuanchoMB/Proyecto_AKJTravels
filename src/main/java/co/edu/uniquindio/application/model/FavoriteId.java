@@ -1,9 +1,7 @@
-// src/main/java/co/edu/uniquindio/application/model/FavoriteId.java
 package co.edu.uniquindio.application.model;
 
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
-import java.util.Objects;
 
 @Embeddable
 public class FavoriteId implements Serializable {

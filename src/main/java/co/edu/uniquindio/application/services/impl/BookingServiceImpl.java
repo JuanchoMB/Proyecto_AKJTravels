@@ -1,5 +1,5 @@
 package co.edu.uniquindio.application.services.impl;
-//samu
+
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -36,23 +35,19 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception{
 
-        // vreifica que el checkIn no esté en pasado
         if(createBookingDTO.checkIn().isBefore(LocalDateTime.now())){
             throw new BadRequestException("el checkIn es invalido");
         }
 
-        //verifica que el checkIn no esté despues del checkOut
         if(createBookingDTO.checkIn().isAfter(createBookingDTO.checkOut())) {
             throw new BadRequestException("Datos incorrectos o la fecha de checkIn está despues de la fecha de check Out");
         }
 
-        // verifica si las fechas están disponibles
         boolean avaliable = bookingRepository.existsOverlappingBooking(id, createBookingDTO.checkIn(), createBookingDTO.checkOut());
         if(avaliable){
             throw new ValueConflictException("fechas no disponibles");
         }
 
-        //verifica que exista el alojamiento
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
 
@@ -60,13 +55,11 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario"));
 
 
-        //la mapeamos y la guardamos en la DB
         Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
         bookingRepository.save(booking);
 
     }
 
-    // para cancelar una reserva
     @Override
     public void delete(String id) throws Exception {
         Optional<Booking> booking = bookingRepository.findById(id);
@@ -95,7 +88,6 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    //lista de todas las reservas de un alojamiento (aplicando filtros y paginación)
     @Override
     public List<BookingDTO> listBookings(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception {
 
@@ -107,7 +99,6 @@ public class BookingServiceImpl implements BookingService {
         return getBookingPlaceDTOS(id, page, searchBookingDTO, place.isEmpty(), place);
     }
 
-    //lista de todas las reservas de un usuario (aplicando filtros y paginación)
     @Override
     public List<BookingDTO> listBookingsUser(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception {
 

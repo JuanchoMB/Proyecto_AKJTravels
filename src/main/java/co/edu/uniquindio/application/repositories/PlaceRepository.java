@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +18,9 @@ public interface PlaceRepository extends JpaRepository<Place, String> {
 
     @Query("select p from Place p where p.user.id = :idUser")
     Page<Place> getPlaces(String idUser, Pageable pageable);
-
     List<Place> findByState(State state);
 
 
-    //para filtrar los alojamientos disponibles
     @Query("""
     SELECT a
     FROM Place a

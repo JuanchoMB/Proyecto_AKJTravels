@@ -5,7 +5,6 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,8 +27,7 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public Map upload(MultipartFile image) throws Exception {
         File file = convert(image);
-        // Reemplace "folder" si quiero guardar las imagenes en otra carpeta de cloudinary
-        return cloudinary.uploader().upload(file, ObjectUtils.asMap("folder", "AdvanzedProyect"));
+        return cloudinary.uploader().upload(file, ObjectUtils.asMap("folder", "AKJTravels"));
     }
 
     @Override

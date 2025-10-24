@@ -11,7 +11,7 @@ import co.edu.uniquindio.application.model.Coordinates;
 import co.edu.uniquindio.application.model.Location;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
-import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.model.enums.Services;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.model.enums.PlaceType;
 import co.edu.uniquindio.application.model.enums.State;
@@ -27,10 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -70,7 +67,7 @@ class PlaceServiceTest {
                 "San Antonio",                      // neighborhood
                 "Cra 1 # 2-3",                      // street
                 "A1B2C3",                           // postalCode (patrón 4..10 alfanumérico)
-                List.copyOf(EnumSet.of(Amenities.WIFI, Amenities.PARKING_AND_FACILITIES)), // amenities >=1
+                List.copyOf(EnumSet.of(Services.WIFI, Services.PARKING_AND_FACILITIES)), // services >=1
                 lat, lon                            // latitude, longitude
         );
     }
@@ -140,7 +137,7 @@ class PlaceServiceTest {
                 "Titulo Nuevo", "Descripción nueva suficiente", 4, 200_000.0,
                 "Colombia", "Valle", "Cali", "San Antonio", "Cra 1 # 2-3",
                 "Z9X8Y7", List.of("https://img/2.jpg"),
-                List.copyOf(EnumSet.of(Amenities.WIFI)), PlaceType.HOUSE
+                List.copyOf(EnumSet.of(Services.WIFI)), PlaceType.HOUSE
         );
         assertThrows(ResourceNotFoundException.class, () -> service.edit("a1", update));
     }
@@ -155,7 +152,7 @@ class PlaceServiceTest {
                 "Titulo Nuevo", "Descripción nueva suficiente", 4, 200_000.0,
                 "Colombia", "Valle", "Cali", "San Antonio", "Cra 1 # 2-3",
                 "Z9X8Y7", List.of("https://img/2.jpg"),
-                List.copyOf(EnumSet.of(Amenities.WIFI)), PlaceType.HOUSE
+                List.copyOf(EnumSet.of(Services.WIFI)), PlaceType.HOUSE
         );
 
         service.edit("a1", update);
@@ -206,12 +203,12 @@ class PlaceServiceTest {
     }
 
     @Test
-    @DisplayName("listAllAmenities(): ok -> retorna amenities del alojamiento")
+    @DisplayName("listAllAmenities(): ok -> retorna services del alojamiento")
     void listAllAmenities_ReturnsAmenities() throws Exception {
         Place acc = new Place(); acc.setId("a1");
-        List<Amenities> amenities = new ArrayList<>();
-        amenities.add(Amenities.WIFI);
-        amenities.add(Amenities.PARKING_AND_FACILITIES);
+        List<Services> amenities = new ArrayList<>();
+        amenities.add(Services.WIFI);
+        amenities.add(Services.PARKING_AND_FACILITIES);
         acc.setAmenities(amenities);
 
         when(placeRepository.findById("a1")).thenReturn(Optional.of(acc));

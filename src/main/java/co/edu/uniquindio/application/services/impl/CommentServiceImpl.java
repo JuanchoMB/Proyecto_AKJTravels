@@ -35,7 +35,6 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
 
-    //devuelve todos los comentarios de los alojamientos
     @Override
     public List<CommentDTO> listComments(String id, int page) throws Exception {
 
@@ -51,35 +50,28 @@ public class CommentServiceImpl implements CommentService {
 
     }
 
-    // metodo para crear el comentario (posible cambio). Validar que el comentario solo se haga si la reserva pasó y que corresponda al alojamiento deonde se quedó el usuario
     @Override
     @Transactional
     public void createComment(String placeId, String userId, CreateCommentDTO createCommentDTO) throws Exception {
 
-        // validar existencia de la reserva
         Booking booking = bookingRepository.findById(placeId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la reserva"));
 
-        // validar que la reserva ya haya terminado
         if (booking.getBookingState() != BookingState.COMPLETED) {
             throw new ForbiddenException("No puedes comentar si tu reserva aún no ha finalizado");
         }
 
-        // validar existencia del usuario
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
 
-        //  que la reserva pertenezca al usuario
         if (!booking.getUser().getId().equals(user.getId())) {
             throw new ForbiddenException("No puedes comentar una reserva que no te pertenece");
         }
 
-        // validamos que no haya comentado antes en esta reserva
         if (commentRepository.existsByBookingId(placeId)) {
             throw new ForbiddenException("Ya realizaste un comentario para esta reserva");
         }
 
-        // crear comentario y asignar relaciones
         Comment comment = commentMapper.toEntity(createCommentDTO);
         comment.setBooking(booking);
         comment.setPlace(booking.getPlace());

@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.*;
 
 @RestController
@@ -40,36 +39,30 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "eliminacion exitosa :)"));
     }
 
-    // obtener el usuario
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDTO<UserDTO>> get(@PathVariable String id) throws Exception{
         UserDTO userDTO = userService.get(id);
         return ResponseEntity.ok(new ResponseDTO<>(false, userDTO));
     }
 
-    //actualizar datos del host
     @PutMapping("/{id}/host")
     public ResponseEntity<ResponseDTO<String>> add_data_host(@PathVariable String id, @Valid @RequestBody HostDTO hostDTO ) throws Exception {
-        userService.addHostData(id, hostDTO);
+        userService.addDataHost(id, hostDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "datos añadidos con exito "));
     }
 
-    //cambiar contraseña
     @PatchMapping("/{id}")
     public ResponseEntity<ResponseDTO<String>> update_password(@PathVariable String id, @Valid @RequestBody EditPasswordDTO editPasswordDTO) throws Exception {
         userService.changePassword(id, editPasswordDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "contraseña actualizada :)"));
     }
 
-    //ver listado de reservas del cliente(filtros y paginación)
     @GetMapping("/{id}/bookings/{page}")
     public ResponseEntity<ResponseDTO<List<BookingDTO>>> booking_list(@PathVariable String id, @PathVariable int page, @Valid @RequestBody SearchBookingDTO searchBookingDTO) throws Exception {
         List<BookingDTO> list = bookingService.listBookingsUser(id, page, searchBookingDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
 
-
-    //lista de alojamientos del host
     @GetMapping("/{id}/places/host/{page}")
     public ResponseEntity<ResponseDTO<List<PlaceDTO>>> listPlaceHost(@PathVariable String id, @PathVariable int page) throws Exception {
         List<PlaceDTO> list = placeService.listAllPlacesHost(id, page);

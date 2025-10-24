@@ -1,7 +1,7 @@
 package co.edu.uniquindio.application.dto.placeDTO;
 
 import co.edu.uniquindio.application.dto.userDTO.UserDetailDTO;
-import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.model.enums.Services;
 import java.util.List;
 
 public record PlaceDetailDTO(String id, float latitude,
@@ -9,7 +9,7 @@ public record PlaceDetailDTO(String id, float latitude,
                              double price,
                              List<String> pics_url,
                              String description,
-                             List<Amenities> amenities,
+                             List<Services> services,
                              String title,
                              int capacity,
                              double averageRatings,

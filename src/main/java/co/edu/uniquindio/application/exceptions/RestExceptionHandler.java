@@ -1,4 +1,5 @@
 package co.edu.uniquindio.application.exceptions;
+
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.ValidationDTO;
 import org.springframework.http.HttpStatus;
@@ -33,34 +34,29 @@ public class RestExceptionHandler {
         return ResponseEntity.badRequest().body( new ResponseDTO<>(true, errors) );
     }
 
-    // http 409
     @ExceptionHandler(ValueConflictException.class)
     public ResponseEntity<ResponseDTO<String>> handleValueConflictException(ValueConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body( new ResponseDTO<>(true, ex.getMessage()) );
     }
 
-    // http 404
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseDTO<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body( new ResponseDTO<>(true, ex.getMessage()) );
-    }
-
-    // http 400
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ResponseDTO<String>> handleBadRequestException(BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body( new ResponseDTO<>(true, ex.getMessage()) );
     }
 
-    // http 401
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ResponseDTO<String>> handleUnauthorizedException(UnauthorizedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body( new ResponseDTO<>(true, ex.getMessage()) );
     }
 
-    // http 403
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ResponseDTO<String>> handleForbiddenException(ForbiddenException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body( new ResponseDTO<>(true, ex.getMessage()) );
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ResponseDTO<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body( new ResponseDTO<>(true, ex.getMessage()) );
     }
 
 }

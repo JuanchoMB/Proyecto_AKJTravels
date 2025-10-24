@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,12 +17,8 @@ import java.util.Optional;
 public interface BookingRepository extends JpaRepository<Booking, String> {
 
     List<Booking> findByPlaceId(String placeId);
-
-    //Optional<Booking> findById(String bookingId);
-
     Optional<Booking> findByPlaceIdAndBookingState(String placeId, BookingState bookingState);
 
-    //se hace el filtro a la base de datos directamente en caso de que vengan filtros
     @Query("""
     SELECT b
     FROM Booking b
@@ -40,7 +35,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
             Pageable pageable
     );
 
-    //se hace el filtro a la base de datos directamente en caso de que vengan filtros
     @Query("""
     SELECT b
     FROM Booking b
@@ -57,9 +51,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
             Pageable pageable
     );
 
-
-
-    //cuenta cuantas reservas tiene el alojamiento
     @Query("""
     SELECT COUNT(b)
     FROM Booking b
@@ -71,7 +62,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
                                           @Param("startDate")LocalDateTime startDate,
                                           @Param("endDate")LocalDateTime endDate);
 
-    //promedio de ocupación del alojamiento (occupancyRate)
     @Query("""
     SELECT COALESCE(SUM(DATEDIFF(b.checkOut, b.checkIn)), 0)
     FROM Booking b
@@ -84,7 +74,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
                                                  @Param("startDate")LocalDateTime startDate,
                                                  @Param("endDate")LocalDateTime endDate);
 
-    // numero de reservas que han sido canceladas
     @Query("""
     SELECT COUNT(b)
     FROM Booking b
@@ -97,7 +86,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
                                             @Param("startDate")LocalDateTime startDate,
                                             @Param("endDate")LocalDateTime endDate);
 
-    //promedio de ganancias de el alojamiento (reservas completadas)
     @Query("""
     SELECT COALESCE(SUM(a.price), 0)
     FROM Booking b

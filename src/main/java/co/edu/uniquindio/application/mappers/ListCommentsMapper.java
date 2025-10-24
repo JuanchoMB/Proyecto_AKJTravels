@@ -18,7 +18,6 @@ import org.mapstruct.ReportingPolicy;
 
     CommentDTO ToCommentDTO(Comment comment);
 
-    // Método auxiliar para mapear User a UserCommentDTO
     default UserCommentDTO mapUser(User user){
         if(user == null) return null;
         return new UserCommentDTO(user.getName(), user.getPhotoUrl());

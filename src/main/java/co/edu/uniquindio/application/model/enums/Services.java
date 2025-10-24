@@ -1,6 +1,6 @@
 package co.edu.uniquindio.application.model.enums;
 
-public enum Amenities {
+public enum Services {
     BATHROOM,
     HAIR_DRYER,
     CLEANING_PRODUCTS,

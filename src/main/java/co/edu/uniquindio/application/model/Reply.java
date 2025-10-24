@@ -18,7 +18,7 @@ public class Reply {
     private String reply;
 
     @OneToOne
-    @JoinColumn(name = "comment_id",unique = true, nullable = false)//unique me dice que solo una respuesta por comentario
+    @JoinColumn(name = "comment_id",unique = true, nullable = false)
     private Comment comment;
 
     @Column(nullable = false)

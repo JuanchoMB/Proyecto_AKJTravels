@@ -22,22 +22,18 @@ public class AuthController {
     private final UserService userService;
     private final PasswordResetService passwordResetService;
 
-
-    // crear un usuario (hecho)
     @PostMapping
     public ResponseEntity<ResponseDTO<String>> create(@Valid @RequestBody CreateUserDTO createUserDTO) throws Exception {
         userService.create(createUserDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResponseDTO<>(false, "registro exitoso :)"));
     }
 
-    //login
     @PostMapping("/login")
     public ResponseEntity<ResponseDTO<TokenDTO>> login(@Valid @RequestBody LoginDTO loginDTO) throws Exception{
         TokenDTO token = userService.login(loginDTO);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ResponseDTO<>(false, token));
     }
 
-    // solicitar codigo para cambiar la contraseña
     @PostMapping("/forgot-password")
     public ResponseEntity<String> requestReset(@Valid @RequestBody RequestResetPasswordDTO dto) throws Exception{
         passwordResetService.requestPasswordReset(dto);
@@ -49,7 +45,4 @@ public class AuthController {
         passwordResetService.resetPassword(dto);
         return ResponseEntity.ok("Contraseña cambiada exitosamente");
     }
-
-
-
 }

@@ -7,14 +7,9 @@ import org.springframework.data.domain.Pageable;
 public interface FavoriteService {
 
     void addFavorite(String userId, String placeId);
-
     void removeFavorite(String userId, String placeId);
-
-    // <-- métodos que pide tu controlador
     Page<Place> listMyFavorites(String userId, Pageable pageable);
-
     boolean isMyFavorite(String userId, String placeId);
-
     long countFavoritesByPlace(String placeId);
 
 }

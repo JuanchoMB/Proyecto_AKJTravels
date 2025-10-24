@@ -11,6 +11,5 @@ public record BookingDTO(
         LocalDate checkOut,
         int guest_number
 
-
 ) {
 }

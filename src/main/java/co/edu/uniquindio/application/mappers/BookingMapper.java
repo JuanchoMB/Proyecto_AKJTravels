@@ -21,9 +21,7 @@ import org.mapstruct.ReportingPolicy;
     @Mapping(source = "place", target = "place")
     @Mapping(source = "user", target = "user")
 
-
     Booking toEntity(CreateBookingDTO createBookingDTO, Place place, User user);
-
     BookingDTO toBookingDTO(Booking booking);
 
 }

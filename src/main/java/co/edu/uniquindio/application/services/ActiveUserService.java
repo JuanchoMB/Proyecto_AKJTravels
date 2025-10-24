@@ -1,11 +1,9 @@
 package co.edu.uniquindio.application.services;
 
 import org.springframework.stereotype.Service;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-// servicio que guarda los usuarios activos
 @Service
 public class ActiveUserService {
     private final Set<String> activeUsers = ConcurrentHashMap.newKeySet();

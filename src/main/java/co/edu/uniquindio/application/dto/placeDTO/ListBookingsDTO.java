@@ -3,7 +3,6 @@ package co.edu.uniquindio.application.dto.placeDTO;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
-
 import java.time.LocalDateTime;
 
 public record ListBookingsDTO(

@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 public interface CommentRepository extends JpaRepository<Comment, String> {
 
     Page<Comment> findAllByPlaceId(String placeId, Pageable pageable);
-
     boolean existsByBookingId(String bookingId);
 
     @Query("""
@@ -37,7 +36,6 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
     Double sumRatingsByPlaceId(@Param("placeId") String placeId);
 
 
-    //cuenta el numero dde comentarios de un alojamiento
     @Query("""
 SELECt COUNT(c)
 FROM Comment c

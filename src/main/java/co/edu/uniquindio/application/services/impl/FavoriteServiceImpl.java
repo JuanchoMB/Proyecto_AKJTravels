@@ -49,8 +49,6 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .ifPresent(favoriteRepository::delete);
     }
 
-    // ===== Métodos que necesita tu controlador =====
-
     @Override
     @Transactional(readOnly = true)
     public Page<Place> listMyFavorites(String userId, Pageable pageable) {

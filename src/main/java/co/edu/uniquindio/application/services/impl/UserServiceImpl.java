@@ -15,7 +15,6 @@ import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.repositories.HostRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.security.JWTUtils;
-import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.UserService;
 import co.edu.uniquindio.application.validators.ImageValidators;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 
 @Service
@@ -33,7 +31,6 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    //private final BCryptPasswordEncoder cryptPasswordEncoder;
     private final JWTUtils jwtUtils;
     private final HostRepository hostRepository;
     private final ImageValidators  imageValidators;
@@ -42,19 +39,15 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void create(CreateUserDTO createUserDTO) throws Exception {
 
-        //Verificar si el email ya existe
         if (userRepository.existsByEmail(createUserDTO.email())) {
             throw new ValueConflictException("El email ya está registrado");
         }
-        // Crear usuario usando MapStruct
+
         User user = userMapper.toEntity(createUserDTO);
 
-        // Encriptar contraseña con BCrypt (IMPORTANTE)
         user.setPassword(encode(createUserDTO.password()));
 
-        //Guardar en BD
         userRepository.save(user);
-
 
         if(createUserDTO.role() == Role.HOST){
             HostProfile host = new HostProfile();
@@ -81,7 +74,6 @@ public class UserServiceImpl implements UserService {
     public void edit(String id, EditUserDTO editUserDTO) throws Exception {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        // Validacion foto de perfil
         if (editUserDTO.photoUrl() != null && !imageValidators.isValid(editUserDTO.photoUrl())) {
             throw new ValueConflictException("El formato de imagen no es valido");
         }
@@ -92,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addHostData(String id, HostDTO hostDTO) throws Exception {
+    public void addDataHost(String id, HostDTO hostDTO) throws Exception {
 
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         HostProfile host = hostRepository.findByUserId(id)
@@ -102,11 +94,8 @@ public class UserServiceImpl implements UserService {
             throw new ValueConflictException("Descripcion requerida para ser anfitrion");
         }
         user.setDescription(hostDTO.description().trim());
-        //Agreagr el atributo de lista de documentos al host
         host.setDocuments(hostDTO.legal_documents());
         user.setIsHost(true);
-
-        // actualizamos en la base de datos
         userRepository.save(user);
         hostRepository.save(host);
 
@@ -143,7 +132,6 @@ public class UserServiceImpl implements UserService {
 
         User user = optionalUser.get();
 
-        // Verificar si la contraseña es correcta usando el PasswordEncoder
         if(!passwordEncoder.matches(loginDTO.password(), user.getPassword())){
             throw new ResourceNotFoundException("El usuario no existe");
         }
@@ -164,7 +152,6 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("la contraseña no coincide");
         }
 
-        // se actualiza la contraseña y guardamos el cambio
         user.setPassword(passwordEncoder.encode(editPasswordDTO.new_password()));
         userRepository.save(user);
     }
@@ -177,7 +164,6 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    // para encriptar la contraseña
     private String encode(String password){
         var passwordEncoder = new BCryptPasswordEncoder();
         return passwordEncoder.encode(password);

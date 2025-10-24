@@ -23,7 +23,6 @@ import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.security.JWTUtils;
 import co.edu.uniquindio.application.validators.ImageValidators;
 import org.mockito.Mock;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -126,7 +125,7 @@ class UserServiceTest {
     }
 
     @Test
-    void addHostData_WhenValid_ShouldUpdateHostProfile() throws Exception {
+    void addHostData_WhenValid_ShouldUpdateProfileHost() throws Exception {
         User user = new User();
         user.setId("1");
         HostProfile host = new HostProfile();
@@ -135,7 +134,7 @@ class UserServiceTest {
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
         when(hostRepository.findByUserId("1")).thenReturn(Optional.of(host));
 
-        userService.addHostData("1", dto);
+        userService.addDataHost("1", dto);
 
         assertTrue(user.getIsHost());
         verify(userRepository).save(user);

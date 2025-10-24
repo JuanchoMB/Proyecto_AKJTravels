@@ -1,7 +1,6 @@
 package co.edu.uniquindio.application.services;
 
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.Map;
 
 public interface ImageService {

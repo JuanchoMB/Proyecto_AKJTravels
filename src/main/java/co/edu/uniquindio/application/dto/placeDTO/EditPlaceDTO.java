@@ -1,9 +1,8 @@
 package co.edu.uniquindio.application.dto.placeDTO;
 
-import co.edu.uniquindio.application.model.enums.Amenities;
+import co.edu.uniquindio.application.model.enums.Services;
 import co.edu.uniquindio.application.model.enums.PlaceType;
 import jakarta.validation.constraints.*;
-
 import java.util.List;
 
 public record EditPlaceDTO(@Size(min = 5, max = 25, message = "El título debe tener entre 5 y 25 caracteres")
@@ -20,7 +19,7 @@ public record EditPlaceDTO(@Size(min = 5, max = 25, message = "El título debe t
                            @Pattern(regexp = "^[0-9A-Za-z]{4,10}$", message = "El código postal no es válido")
                            @NotBlank String postalCode,
                            @NotEmpty List<String> pics_url,
-                           @NotEmpty List<Amenities> amenities,
+                           @NotEmpty List<Services> amenities,
                            @NotNull PlaceType placeType
 
 ) {

@@ -17,7 +17,7 @@ public class Comment {
     @Id
     private String id;
 
-    @Lob//especifica que puede ser un texto largo
+    @Lob
     @Column(nullable = false)
     private String comment;
 
