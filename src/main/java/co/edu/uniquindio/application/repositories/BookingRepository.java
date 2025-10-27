@@ -19,6 +19,22 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
     List<Booking> findByPlaceId(String placeId);
     Optional<Booking> findByPlaceIdAndBookingState(String placeId, BookingState bookingState);
 
+    // ¿Existen reservas futuras activas? (para impedir eliminar Place)
+    boolean existsByPlace_IdAndCheckInAfterAndBookingStateIn(
+            String placeId, LocalDateTime checkIn, java.util.List<co.edu.uniquindio.application.model.enums.BookingState> states);
+
+    // Conteo de reservas por lugar en un rango (usamos checkIn/checkOut)
+    @org.springframework.data.jpa.repository.Query("""
+    SELECT COUNT(b)
+    FROM Booking b
+    WHERE b.place.id = :placeId
+      AND (:from IS NULL OR b.checkIn  >= :from)
+      AND (:to   IS NULL OR b.checkOut <= :to)
+""")
+    long countByPlaceIdBetween(@org.springframework.data.repository.query.Param("placeId") String placeId,
+                               @org.springframework.data.repository.query.Param("from") LocalDateTime from,
+                               @org.springframework.data.repository.query.Param("to") LocalDateTime to);
+
     @Query("""
     SELECT b
     FROM Booking b

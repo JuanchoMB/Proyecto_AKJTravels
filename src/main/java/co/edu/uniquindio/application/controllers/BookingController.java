@@ -31,4 +31,11 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "reserva eliminada"));
     }
 
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<ResponseDTO<String>> confirm(@PathVariable String id) throws Exception {
+        bookingService.confirm(id);
+        return ResponseEntity.ok(new ResponseDTO<>(false, "reserva confirmada"));
+    }
+
+
 }

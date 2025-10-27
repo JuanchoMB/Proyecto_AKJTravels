@@ -35,6 +35,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception{
 
+        if (!createBookingDTO.checkIn().plusDays(1).isBefore(createBookingDTO.checkOut())
+                && !createBookingDTO.checkIn().plusDays(1).isEqual(createBookingDTO.checkOut())) {
+            throw new BadRequestException("La reserva debe ser mínimo de 1 noche");
+        }
+
         if(createBookingDTO.checkIn().isBefore(LocalDateTime.now())){
             throw new BadRequestException("el checkIn es invalido");
         }
@@ -43,19 +48,27 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("Datos incorrectos o la fecha de checkIn está despues de la fecha de check Out");
         }
 
-        boolean avaliable = bookingRepository.existsOverlappingBooking(id, createBookingDTO.checkIn(), createBookingDTO.checkOut());
-        if(avaliable){
+        boolean solapa = bookingRepository.existsOverlappingBooking(id, createBookingDTO.checkIn(), createBookingDTO.checkOut());
+        if(solapa){
             throw new ValueConflictException("fechas no disponibles");
         }
 
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
 
+        // === Validación de capacidad ===
+        Integer guests = createBookingDTO.guest_number();
+
+        if (guests > place.getCapacity()) {
+            throw new BadRequestException("Excede capacidad del lugar");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario"));
 
-
         Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
+        if (booking.getBookingState() == null) booking.setBookingState(BookingState.PENDING);
+
         bookingRepository.save(booking);
 
     }
@@ -72,7 +85,8 @@ public class BookingServiceImpl implements BookingService {
             throw new ForbiddenException("No te pertenece esta reserva");
         }
 
-        if(booking.get().getBookingState().equals(BookingState.PENDING)){
+        if(booking.get().getBookingState() == BookingState.PENDING
+                || booking.get().getBookingState() == BookingState.CONFIRMED){
             LocalDateTime checkIn = booking.get().getCheckIn();
             LocalDateTime now = LocalDateTime.now();
             if(now.isBefore(checkIn.minusHours(48))){
@@ -104,6 +118,22 @@ public class BookingServiceImpl implements BookingService {
 
         Optional<User> user = userRepository.findById(id);
         return getBookingUserDTOS(id, page, searchBookingDTO, user.isEmpty(), user);
+    }
+
+    @Override
+    public void confirm(String bookingId) throws Exception {
+        var b = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe esta reserva"));
+        // dueño del alojamiento
+        String ownerId = b.getPlace().getUser().getId();
+        if (!Objects.equals(ownerId, currentUserService.getCurrentUser())) {
+            throw new ForbiddenException("No eres el anfitrión de este alojamiento");
+        }
+        if (b.getBookingState() != BookingState.PENDING) {
+            throw new BadRequestException("Solo se puede confirmar si está PENDING");
+        }
+        b.setBookingState(BookingState.CONFIRMED);
+        bookingRepository.save(b);
     }
 
     @NotNull

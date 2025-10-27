@@ -11,4 +11,6 @@ public interface BookingService {
     void delete(String id) throws Exception;
     List<BookingDTO> listBookings(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception;
     List<BookingDTO> listBookingsUser(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception;
+    // Nuevo, requerido por el enunciado (no rompe tus llamadas existentes)
+    void confirm(String bookingId) throws Exception;
 }

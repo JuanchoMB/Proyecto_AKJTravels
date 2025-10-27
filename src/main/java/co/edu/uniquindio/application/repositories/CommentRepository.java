@@ -28,12 +28,16 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
                                               @Param("endDate")LocalDateTime endDate);
 
 
-    @Query("""
-    SELECT COALESCE(SUM(c.rating), 0)
+    @org.springframework.data.jpa.repository.Query("""
+    SELECT COALESCE(AVG(CAST(c.rating AS double)), 0)
     FROM Comment c
     WHERE c.place.id = :placeId
+      AND (:from IS NULL OR c.createdAt >= :from)
+      AND (:to   IS NULL OR c.createdAt <= :to)
 """)
-    Double sumRatingsByPlaceId(@Param("placeId") String placeId);
+    Double avgRatingByPlaceIdBetween(@org.springframework.data.repository.query.Param("placeId") String placeId,
+                                     @org.springframework.data.repository.query.Param("from") LocalDateTime from,
+                                     @org.springframework.data.repository.query.Param("to") LocalDateTime to);
 
 
     @Query("""

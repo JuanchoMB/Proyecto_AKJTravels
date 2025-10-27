@@ -17,12 +17,15 @@ import co.edu.uniquindio.application.repositories.CommentRepository;
 import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.services.PlaceService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import co.edu.uniquindio.application.services.GeoUtils;
+
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -99,6 +102,11 @@ public class PlaceServiceImpl implements PlaceService {
         if(booking.isPresent()){
             throw new UnauthorizedException("no puedes eliminar este alojamiento, tiene reservas pendientes");
         }
+
+        boolean hasFutureActive = bookingRepository.existsByPlace_IdAndCheckInAfterAndBookingStateIn(
+                id, LocalDateTime.now(), List.of(BookingState.PENDING, BookingState.CONFIRMED));
+        if (hasFutureActive) throw new UnauthorizedException("Tiene reservas futuras activas");
+
         place.get().setState(State.INACTIVE);
         placeRepository.save(place.get());
     }
@@ -122,7 +130,7 @@ public class PlaceServiceImpl implements PlaceService {
 
 
     @Override
-    public List<Services> listAllAmenities(String id) throws Exception {
+    public List<Services> listAllServices(String id) throws Exception {
 
         Optional<Place> place = placeRepository.findById(id);
         if(place.isPresent()){
@@ -132,21 +140,17 @@ public class PlaceServiceImpl implements PlaceService {
     }
 
     @Override
-    public PlaceStatsDTO stats(String id, StatsDateDTO statsDateDTO) throws Exception {
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public PlaceStatsDTO stats(String placeId, LocalDateTime from, LocalDateTime to) throws Exception {
+        // valida que el place exista (si no lo haces ya en otro método)
+        var place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new co.edu.uniquindio.application.exceptions.ResourceNotFoundException("No existe el alojamiento"));
 
-        double averageRating = commentRepository.findAverageRatingByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-        long totalComments = commentRepository.countByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-        long totalReservations = bookingRepository.countByPlaceIdAndBetween(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-        double occupancy = bookingRepository.findAverageOccupancyByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-        long totalDays = (statsDateDTO.startDate() != null && statsDateDTO.endDate() != null)
-                ? ChronoUnit.DAYS.between(statsDateDTO.startDate(), statsDateDTO.endDate())
-                : 30;
+        long reservations = bookingRepository.countByPlaceIdBetween(placeId, from, to);
+        Double avg = commentRepository.avgRatingByPlaceIdBetween(placeId, from, to);
+        double averageRating = (avg == null) ? 0.0 : avg;
 
-        double occupancyRate = totalDays > 0 ? (occupancy / totalDays) * 100 : 0.0;
-        int cancellations = bookingRepository.countCancellationsByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-        double totalRevenue = bookingRepository.findAverageRevenueByPlaceId(id, statsDateDTO.startDate(), statsDateDTO.endDate());
-
-        return statsMapper.toPlaceStatsDTO(averageRating, totalComments, totalReservations, occupancyRate, cancellations, totalRevenue);
+        return new PlaceStatsDTO(reservations, averageRating);
     }
 
     @Override
@@ -166,4 +170,21 @@ public class PlaceServiceImpl implements PlaceService {
 
         return placeDetailMapper.toPlaceDetailDTO(place.get());
     }
+
+    @Override
+    @Transactional
+    public Place setImages(String placeId, List<String> urls) throws Exception {
+        if (urls == null || urls.isEmpty() || urls.size() > 10) {
+            throw new BadRequestException("Debe enviar entre 1 y 10 URLs de imágenes");
+        }
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
+
+        // guardamos las URLs; la principal es urls.get(0)
+        place.setPics_url(urls);
+        return placeRepository.save(place);
+    }
+
+
+
 }

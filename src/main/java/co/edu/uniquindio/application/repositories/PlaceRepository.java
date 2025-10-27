@@ -43,7 +43,7 @@ public interface PlaceRepository extends JpaRepository<Place, String> {
                WHERE b.place = a 
                  AND b.bookingState IN (
                      co.edu.uniquindio.application.model.enums.BookingState.PENDING, 
-                     co.edu.uniquindio.application.model.enums.BookingState.COMPLETED
+                     co.edu.uniquindio.application.model.enums.BookingState.CONFIRMED
                  )
                  AND (
                        (b.checkIn <= :#{#dto.checkIn} AND b.checkOut > :#{#dto.checkIn})

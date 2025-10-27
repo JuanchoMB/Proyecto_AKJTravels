@@ -4,6 +4,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 public interface ImageService {
-    Map upload(MultipartFile image) throws Exception;
-    Map delete(String imageId) throws Exception;
+    Map upload(MultipartFile file) throws Exception;
+    Map delete(String id) throws Exception;
 }

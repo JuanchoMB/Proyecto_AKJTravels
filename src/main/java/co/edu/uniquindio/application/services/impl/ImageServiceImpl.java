@@ -31,8 +31,8 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Map delete(String imageId) throws Exception {
-        return cloudinary.uploader().destroy(imageId, ObjectUtils.emptyMap());
+    public Map delete(String id) throws Exception {
+        return cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
     }
 
     private File convert(MultipartFile image) throws IOException {

@@ -1,10 +1,8 @@
 package co.edu.uniquindio.application.dto.userDTO;
 
 import co.edu.uniquindio.application.model.enums.Role;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+
 import java.time.LocalDate;
 
 public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
@@ -22,7 +20,8 @@ public record CreateUserDTO(@NotBlank(message = "Nombre requerido")
                             String country,
                             String photoUrl,
                             @NotBlank(message = "Contraseña requerida")
-                            @Size(min = 6, message = "Contraseña debe tener al menos 6 caracteres")
+                            @Size(min = 8, message = "Mínimo 8 caracteres")
+                            @Pattern(regexp="^(?=.*[A-Z])(?=.*\\d).+$", message="Debe incluir mayúscula y dígito")
                             String password,
                             @NotNull Role role
     ) {

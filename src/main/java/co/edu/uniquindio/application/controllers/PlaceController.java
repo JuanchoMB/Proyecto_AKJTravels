@@ -6,16 +6,26 @@ import co.edu.uniquindio.application.dto.commentDTO.CreateCommentDTO;
 import co.edu.uniquindio.application.dto.ResponseDTO;
 import co.edu.uniquindio.application.dto.placeDTO.*;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
+import co.edu.uniquindio.application.exceptions.BadRequestException;
+import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.enums.Services;
 import co.edu.uniquindio.application.services.BookingService;
 import co.edu.uniquindio.application.services.CommentService;
+import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.PlaceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -26,6 +36,8 @@ public class PlaceController {
     private final PlaceService placeService;
     private final CommentService commentService;
     private final BookingService bookingService;
+    private final ImageService imageService;
+
 
     @GetMapping("/{page}")
     public ResponseEntity<ResponseDTO<List<PlaceDTO>>> read(@PathVariable int page, @Valid @RequestBody ListPlaceDTO listPlaceDTO) throws Exception {
@@ -54,7 +66,7 @@ public class PlaceController {
 
     @GetMapping("/{id}/amenities")
     public ResponseEntity<ResponseDTO<List<Services>>> listServices(@PathVariable String id) throws Exception {
-        List<Services> list = placeService.listAllAmenities(id);
+        List<Services> list = placeService.listAllServices(id);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
 
@@ -77,10 +89,15 @@ public class PlaceController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
 
-    @GetMapping("/{id}/stats")
-    public ResponseEntity<ResponseDTO<PlaceStatsDTO>> stats(@PathVariable String id, @RequestBody StatsDateDTO statsDateDTO) throws Exception {
-        PlaceStatsDTO placeStatsDTO = placeService.stats(id, statsDateDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, placeStatsDTO));
+
+    @GetMapping("/{placeId}/stats")
+    public ResponseEntity<ResponseDTO<PlaceStatsDTO>> stats(
+            @PathVariable String placeId,
+            @RequestParam(required = false) LocalDateTime from,
+            @RequestParam(required = false) LocalDateTime to
+    ) throws Exception {
+        PlaceStatsDTO dto = placeService.stats(placeId, from, to);
+        return ResponseEntity.ok(new ResponseDTO<>(false, dto));
     }
 
     @GetMapping("/{id}/detail")
@@ -89,12 +106,58 @@ public class PlaceController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, placeDetailDTO));
     }
 
-    private String getCurrentUserId() {
-        org.springframework.security.core.userdetails.User user =
-                (org.springframework.security.core.userdetails.User) SecurityContextHolder
-                        .getContext().getAuthentication().getPrincipal();
-        System.out.println(user.getUsername());
-        System.out.println(user.getAuthorities());
-        return user.getUsername();
+    @PostMapping("/{placeId}/images")
+    public ResponseEntity<ResponseDTO<?>> uploadPlaceImages(
+            @PathVariable String placeId,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestParam("mainIndex") Integer mainIndex) throws Exception {
+
+        if (files == null || files.isEmpty() || files.size() > 10) {
+            throw new BadRequestException("Debe subir entre 1 y 10 imágenes");
+        }
+        if (mainIndex == null || mainIndex < 0 || mainIndex >= files.size()) {
+            throw new BadRequestException("mainIndex fuera de rango");
+        }
+
+        // Subir a Cloudinary (o tu provider) usando ImageService
+        List<String> urls = new ArrayList<>();
+        for (MultipartFile f : files) {
+            Object secure = imageService.upload(f).get("secure_url"); // tu ImageServiceImpl ya retorna ese mapa
+            if (secure == null) throw new BadRequestException("No se obtuvo URL segura de la imagen");
+            urls.add(secure.toString());
+        }
+
+        // Poner la imagen principal al inicio (índice 0)
+        if (mainIndex != 0) {
+            Collections.swap(urls, 0, mainIndex);
+        }
+
+        // Guardar en el Place (pics_url) con la principal en index 0
+        Place place = placeService.setImages(placeId, urls);
+
+        // Si tienes PlaceMapper, responde el DTO:
+        // return ResponseEntity.ok(new ResponseDTO<>(false, placeMapper.toDTO(place)));
+
+        // Si no tienes PlaceMapper, responde la entidad directamente:
+        return ResponseEntity.ok(new ResponseDTO<>(false, place));
     }
+
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Usuario no autenticado");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        // Si tu UserDetails personalizado devuelve el ID del usuario:
+        if (principal instanceof UserDetails userDetails) {
+            return userDetails.getUsername(); // o getId() si lo implementaste así
+        }
+
+        // Si el token guarda el ID directamente como String
+        return principal.toString();
+    }
+
 }

@@ -197,14 +197,14 @@ class PlaceServiceTest {
 
     @Test
     @DisplayName("listAllAmenities(): alojamiento inexistente -> ResourceNotFound")
-    void listAllAmenities_NotFound() {
+    void listAllServices_NotFound() {
         when(placeRepository.findById("a1")).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> service.listAllAmenities("a1"));
+        assertThrows(ResourceNotFoundException.class, () -> service.listAllServices("a1"));
     }
 
     @Test
     @DisplayName("listAllAmenities(): ok -> retorna services del alojamiento")
-    void listAllAmenities_ReturnsAmenities() throws Exception {
+    void listAllAmenities_ReturnsServices() throws Exception {
         Place acc = new Place(); acc.setId("a1");
         List<Services> amenities = new ArrayList<>();
         amenities.add(Services.WIFI);
@@ -213,7 +213,7 @@ class PlaceServiceTest {
 
         when(placeRepository.findById("a1")).thenReturn(Optional.of(acc));
 
-        var res = service.listAllAmenities("a1");
+        var res = service.listAllServices("a1");
         assertEquals(2, res.size());
         assertTrue(res.containsAll(amenities));
     }
