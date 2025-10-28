@@ -1,297 +1,354 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+@base = http://localhost:8080
+@page0 = 0
 
+### -------------------------------------------------------------------
+### VARIABLES MANUALES (si tu API NO devuelve ids en respuestas)
+### Completa estos valores si las pruebas que las obtienen automáticamente no te sirven.
+### -------------------------------------------------------------------
+@hostId = REEMPLAZA_CON_ID_HOST
+@userId = REEMPLAZA_CON_ID_USER
+@placeId = REEMPLAZA_CON_ID_PLACE
+@bookingId = REEMPLAZA_CON_ID_BOOKING
+@commentId = REEMPLAZA_CON_ID_COMMENT
 
-###
-PATCH http://localhost:8080/api/users/27322d50-8770-40e4-9e9e-0ef381835ad8
+### -------------------------------------------------------------------
+### AUTH – REGISTRO HOST
+### -------------------------------------------------------------------
+# @name RegisterHost
+POST {{base}}/api/auth
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//cambiar contraseña
 
 {
-  "old_password": "alex414",
-  "new_password": "juancho12"
-}
-
-###
-PUT http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/host
-Content-Type: application/json
-Authorization: Bearer {{token}}
-//añadir descripcion y/o documentos legales
-
-{
-  "description": "10 años en la industria",
-  "legal_documents": [
-    "https://cdn.example.com/docs/id_frontal.pdf",
-    "https://cdn.example.com/docs/id_reverso.pdf"
-  ]
-}
-
-###
-POST http://localhost:8080/api/auth/login
-Content-Type: application/json
-// login
-
-{
-  "email": "alexdavidgutierrez414@gmail.com",
-  "password": "alex414"
-}
-
-> {% client.global.set("token", response.body.message.token); %}
-
-
-###
-POST http://localhost:8080/api/auth/forgot-password
-Content-Type: application/json
-// solicitar codigo para cambiar la contraseña
-
-{
-  "email": "alexdavidgutierrez414@gmail.com"
-}
-
-
-###
-PATCH http://localhost:8080/api/auth/reset-password
-Content-Type: application/json
-//cambiar contraseña olvidada
-
-{
-  "code": "538951",
-  "email": "alexdavidgutierrez414@gmail.com",
-  "newPassword": "alex111"
-}
-
-
-###
-POST http://localhost:8080/api/auth
-Content-Type: application/json
-//registrarse
-
-{
-  "name": "Alex",
-  "surname": "Jurado",
-  "email": "alexdavidgutierrez414@gmail.com",
-  "phone": "3227596573",
-  "birthDate": "2005-04-27",
-  "password": "alex414",
-  "photoUrl": "dfdsfdsfsdfsdfs",
-  "country": "colombia",
+  "name": "Host Test",
+  "surname": "Demo",
+  "email": "host@test.com",
+  "phone": "3100000000",
+  "birthDate": "1990-01-01",
+  "country": "CO",
+  "password": "ClaveFuerte1",
   "role": "HOST"
 }
+> {%
+    // Ajusta según tu ResponseDTO; si devuelves id en data, extráelo aquí.
+    // client.global.set("hostId", response.body.data?.id);
+%}
 
-###
-GET http://localhost:8080/api/users/list
-//devuelve una lista de todos los usuarios
-
-
-###
-PUT http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
+### -------------------------------------------------------------------
+### AUTH – REGISTRO USER
+### -------------------------------------------------------------------
+# @name RegisterUser
+POST {{base}}/api/auth
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//editar datos del usuario
 
 {
-  "name": "kevyn",
-  "phone": "3102381183",
-  "photoUrl": "http://mnt/data/ff6a4b1e-5eda-40ec-8903-aeaaa1ae0b83.png",
-  "birthDate": "2005-02-22"
+  "name": "User Test",
+  "surname": "Demo",
+  "email": "user@test.com",
+  "phone": "3110000000",
+  "birthDate": "1995-02-02",
+  "country": "CO",
+  "password": "ClaveFuerte1",
+  "role": "USER"
 }
+> {%
+    // client.global.set("userId", response.body.data?.id);
+%}
 
-
-###
-DELETE http://localhost:8080/api/users/{id}
+### -------------------------------------------------------------------
+### LOGIN HOST  → tokenHost
+### -------------------------------------------------------------------
+# @name LoginHost
+POST {{base}}/api/auth/login
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//eliminar usuario
 
 {
-  "password": "juancho12"
+  "email": "host@test.com",
+  "password": "ClaveFuerte1"
 }
+> {%
+    // Ajusta si tu wrapper es {error, data:{token}}
+    const token = response.body?.data?.token || response.body?.token;
+    if (token) client.global.set("tokenHost", token);
+%}
 
-
-###
-GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab
-Authorization: Bearer {{token}}
-// obtener el usuario (ver su perfil)
-
-
-###
-POST http://localhost:8080/api/bookings/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9
+### -------------------------------------------------------------------
+### LOGIN USER  → tokenUser
+### -------------------------------------------------------------------
+# @name LoginUser
+POST {{base}}/api/auth/login
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//crear una reserva
 
 {
-  "checkIn": "2025-11-29T14:00:00",
-  "checkOut": "2025-11-30T11:30:00",
-  "guest_number": 2
+  "email": "user@test.com",
+  "password": "ClaveFuerte1"
 }
+> {%
+    const token = response.body?.data?.token || response.body?.token;
+    if (token) client.global.set("tokenUser", token);
+%}
 
-
-###
-GET http://localhost:8080/api/users/34a29e7f-c062-4937-8d44-2d0a7304914a/bookings/0
+### -------------------------------------------------------------------
+### USERS – COMPLETAR DATOS DE HOST (si tu endpoint lo usa)
+### -------------------------------------------------------------------
+# @name CompleteHost
+PUT {{base}}/api/users/{{hostId}}/host
+Authorization: Bearer {{tokenHost}}
 Content-Type: application/json
-// ver el listado de reservas aplicando filtros
 
 {
-  "state": "COMPLETED",
-  "checkIn": "2025-09-14T14:00:00",
-  "checkOut": "2025-09-15T11:30:00",
-  "guest_number": 2
+  "about": "Anfitrión de prueba",
+  "phone": "3100000000"
 }
 
-
-###
-DELETE http://localhost:8080/api/bookings/6d93c2c4-975a-4540-b722-4c68c40fd59b
-Authorization: Bearer {{token}}
-//eliminar cancelar reserva
-
-
-###
-GET http://localhost:8080/api/places/0
+### -------------------------------------------------------------------
+### USERS – EDITAR PERFIL USER
+### -------------------------------------------------------------------
+# @name EditUser
+PUT {{base}}/api/users/{{userId}}
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-// ver la lista de alojamientos disponibles (aplicando filtros y paginación)
+
+{
+  "name": "User Test Editado",
+  "phone": "3110000001",
+  "photoUrl": "https://picsum.photos/200",
+  "birthDate": "1995-02-02"
+}
+
+### -------------------------------------------------------------------
+### USERS – CAMBIAR CONTRASEÑA USER
+### -------------------------------------------------------------------
+# @name ChangePasswordUser
+PATCH {{base}}/api/users/{{userId}}
+Authorization: Bearer {{tokenUser}}
+Content-Type: application/json
+
+{
+  "currentPassword": "ClaveFuerte1",
+  "newPassword": "ClaveNueva2"
+}
+
+### -------------------------------------------------------------------
+### PLACES – CREAR LUGAR (HOST)
+### -------------------------------------------------------------------
+# @name CreatePlace
+POST {{base}}/api/places
+Authorization: Bearer {{tokenHost}}
+Content-Type: application/json
+
+{
+  "title": "Finca Demo",
+  "description": "Hermosa finca de prueba con todo lo necesario.",
+  "price": 250000,
+  "placeType": "FARM",
+  "capacity": 5,
+  "country": "CO",
+  "department": "Quindío",
+  "city": "Armenia",
+  "neighborhood": "La Florida",
+  "street": "Km 3",
+  "postalCode": "630001",
+  "amenities": ["PETS_ALLOWED", "FREE_STREET_PARKING", "ESSENTIALS"],
+  "latitude": 4.533,
+  "longitude": -75.681
+}
+> {%
+    // Si tu respuesta retorna id del lugar en data, guárdalo
+    // client.global.set("placeId", response.body?.data?.id || response.body?.data);
+%}
+
+### -------------------------------------------------------------------
+### IMAGES – SUBIR 2 IMÁGENES (1..10) Y MARCAR PRINCIPAL = 0
+### -------------------------------------------------------------------
+# @name UploadImages
+POST {{base}}/api/places/{{placeId}}/images?mainIndex=0
+Authorization: Bearer {{tokenHost}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="foto1.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/foto1.jpg
+--WebAppBoundary
+Content-Disposition: form-data; name="files"; filename="foto2.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/foto2.jpg
+--WebAppBoundary--
+
+### -------------------------------------------------------------------
+### PLACES – DETALLE DEL LUGAR
+### -------------------------------------------------------------------
+# @name PlaceDetail
+GET {{base}}/api/places/{{placeId}}/detail
+
+### -------------------------------------------------------------------
+### PLACES – AMENIDADES DEL LUGAR
+### -------------------------------------------------------------------
+# @name PlaceAmenities
+GET {{base}}/api/places/{{placeId}}/amenities
+
+### -------------------------------------------------------------------
+### PLACES – BÚSQUEDA PAGINADA (10/pg)
+### -------------------------------------------------------------------
+# @name SearchPlaces
+GET {{base}}/api/places/{{page0}}
+Content-Type: application/json
 
 {
   "city": "Armenia",
-  "checkIn": "2025-10-15T15:00:00",
-  "checkOut": "2025-10-20T11:00:00",
-  "guest_number": 3,
-  "minimum": 80000.0,
-  "maximum": 250000.0,
-  "list": ["WIFI", "KITCHEN"]
+  "minimum": 100000,
+  "maximum": 400000
 }
 
-
-###
-POST http://localhost:8080/api/places
+### -------------------------------------------------------------------
+### BOOKINGS – CREAR RESERVA (USER) – Caso OK (5 días adelante)
+### -------------------------------------------------------------------
+# @name CreateBooking_ok
+POST {{base}}/api/bookings/{{placeId}}
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-Authorization: Bearer {{token}}
-// Crear un alojamiento
 
 {
-  "title": "Casa en Armeniacity",
-  "description": "Hermosa casa frente al mar, equipada con todas las comodidades para unas vacaciones inolvidables. Incluye piscina, terraza y acceso directo a la playa.",
-  "price": 150.0,
-  "picsUrl": [
-    "https://example.com/foto1.jpg",
-    "https://example.com/foto2.jpg"
-  ],
-  "placeType": "HOUSE",
-  "capacity": 6,
-  "country": "Colombia",
-  "department": "Atlántico",
-  "city": "Barranquilla",
-  "neighborhood": "Prado",
-  "street": "Calle 84 #45-32",
-  "postalCode": "AB12CD34",
-  "amenities": [
-    "WIFI"
-  ],
-  "latitude": 11.9685,
-  "longitude": -76.7813
+  "checkIn": "{{now+5d}}T15:00:00",
+  "checkOut": "{{now+7d}}T11:00:00",
+  "guest_number": 2
 }
+> {%
+    // Guarda bookingId si tu API lo retorna en data
+    // client.global.set("bookingId", response.body?.data?.id || response.body?.data);
+%}
 
-###
-PUT http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d
+### -------------------------------------------------------------------
+### BOOKINGS – CREAR RESERVA (USER) – Caso ERROR (solape o <1 noche)
+### -------------------------------------------------------------------
+# @name CreateBooking_error
+POST {{base}}/api/bookings/{{placeId}}
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//actualizar, editar alojamiento
 
 {
-  "title": "Casa Bonita",
-  "description": "Una hermosa casa ubicada cerca del centro de la ciudad, con amplios espacios y todas las comodidades necesarias para una estadía confortable.",
-  "capacity": 4,
-  "price": 120.5,
-  "country": "Colombia",
-  "department": "Cundinamarca",
-  "city": "Bogotá",
-  "neighborhood": "Chapinero",
-  "street": "Carrera 7 #45-67",
-  "postalCode": "AB1234",
-  "pics_url": [
-    "https://example.com/img1.jpg",
-    "https://example.com/img2.jpg"
-  ],
-  "amenities": [
-    "WIFI"
-  ],
-  "placeType": "HOUSE"
+  "checkIn": "{{now+6d}}T15:00:00",
+  "checkOut": "{{now+6d}}T18:00:00",
+  "guest_number": 2
 }
 
-###
-DELETE http://localhost:8080/api/places/2b5a6d6d-1c42-4dc4-8208-09000ef22b97
-Authorization: Bearer {{token}}
-// eliminar un alojamiento (cambiar su estado)
+### -------------------------------------------------------------------
+### BOOKINGS – CONFIRMAR RESERVA (HOST)
+### -------------------------------------------------------------------
+# @name ConfirmBooking
+POST {{base}}/api/bookings/{{bookingId}}/confirm
+Authorization: Bearer {{tokenHost}}
 
-
-###
-GET http://localhost:8080/api/places/f8f6866e-10b4-4a06-91ff-1fa2eafb99d3/amenities
-// lista de todos los servicios del alojamiento
-
-
-###
-GET http://localhost:8080/api/places/adee0a6e-e335-42b3-986b-c4628d98420d/comments/1
-// lista de los comentarios del alojamiento
-
-
-###
-POST http://localhost:8080/api/places/238c42c0-b003-4b4e-ab0f-113314514d1b/comments
+### -------------------------------------------------------------------
+### BOOKINGS – CANCELAR (USER) – Caso ERROR (dentro de 48h)
+### -------------------------------------------------------------------
+# @name CreateBooking_48h
+POST {{base}}/api/bookings/{{placeId}}
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-Authorization: Bearer {{token}}
-// crear un comentario a un alojamiento (reserva stado == finalizada)
 
 {
-  "comment": "Excelente alojamiento, muy limpio y bien ubicado. El anfitrión fue muy amable y siempre estuvo atento a nuestras necesidades. Definitivamente volvería.",
-  "rating": 5
+  "checkIn": "{{now+36h}}",
+  "checkOut": "{{now+60h}}",
+  "guest_number": 1
 }
+> {%
+    // client.global.set("bookingId48", response.body?.data?.id || response.body?.data);
+%}
 
+# @name CancelBooking_fail48
+DELETE {{base}}/api/bookings/{{bookingId48}}
+Authorization: Bearer {{tokenUser}}
 
-###
-GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/bookings/0
+### -------------------------------------------------------------------
+### BOOKINGS – CANCELAR (USER) – Caso OK (>48h)
+### -------------------------------------------------------------------
+# @name CancelBooking_ok
+DELETE {{base}}/api/bookings/{{bookingId}}
+Authorization: Bearer {{tokenUser}}
+
+### -------------------------------------------------------------------
+### FAVORITES – ADD (USER)
+### -------------------------------------------------------------------
+# @name FavAdd
+POST {{base}}/api/favorites/{{placeId}}
+Authorization: Bearer {{tokenUser}}
+
+### -------------------------------------------------------------------
+### FAVORITES – IS MINE?
+### -------------------------------------------------------------------
+# @name FavIsMine
+GET {{base}}/api/favorites/me/{{placeId}}
+Authorization: Bearer {{tokenUser}}
+
+### -------------------------------------------------------------------
+### FAVORITES – LIST MINE (PAGE)
+### -------------------------------------------------------------------
+# @name FavListMine
+GET {{base}}/api/favorites/me?page=0
+Authorization: Bearer {{tokenUser}}
+
+### -------------------------------------------------------------------
+### FAVORITES – COUNT (PÚBLICO)
+### -------------------------------------------------------------------
+# @name FavCount
+GET {{base}}/api/favorites/count/{{placeId}}
+
+### -------------------------------------------------------------------
+### COMMENTS – (NEGATIVO) Crear comentario ANTES de COMPLETED (debe fallar 400)
+### -------------------------------------------------------------------
+# @name Comment_beforeCompleted
+POST {{base}}/api/places/{{bookingId}}/comments
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-// ver el listado de reservas que tiene el alojamiento
 
 {
-  "state": null,
-  "checkIn": null,
-  "checkOut": null,
-  "guest_number": null
+  "rating": 5,
+  "comment": "Excelente!"
 }
 
+### -------------------------------------------------------------------
+### COMMENTS – LISTAR POR LUGAR (recientes primero)
+### -------------------------------------------------------------------
+# @name ListComments
+GET {{base}}/api/places/{{placeId}}/comments/{{page0}}
 
-###
-GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/stats
+### -------------------------------------------------------------------
+### COMMENTS – RESPONDER (HOST)
+### -------------------------------------------------------------------
+# @name ReplyComment
+POST {{base}}/api/comments/{{commentId}}/reply/{{hostId}}
+Authorization: Bearer {{tokenHost}}
 Content-Type: application/json
-Authorization: Bearer {{token}}
-// ver estadisticas del alojamiento
 
 {
-  "startDate": "2025-09-14T14:00:00",
-  "endDate": "2025-12-31T14:00:00"
+  "message": "¡Gracias por tu comentario!"
 }
 
+### -------------------------------------------------------------------
+### STATS – MÉTRICAS DEL LUGAR (HOST)
+### -------------------------------------------------------------------
+# @name PlaceStats
+GET {{base}}/api/places/{{placeId}}/stats?from={{now-30d}}&to={{now+30d}}
+Authorization: Bearer {{tokenHost}}
 
-###
-GET http://localhost:8080/api/places/9ad3e5f3-22a4-4b76-87c1-3e177b6236c9/detail
-// ver el alojamiento (GET)
-
-
-
-###
-GET http://localhost:8080/api/users/1e89fcc2-091b-4343-b31d-e33ea15f46ab/places/host/0
-Authorization: Bearer {{token}}
-// lista los alojamientos del host
-
-
-
-###
-POST http://localhost:8080/api/comments/ba671770-bd8e-45e4-a9e5-b576a121bc1a/reply/34a29e7f-c062-4937-8d44-2d0a7304914a
+### -------------------------------------------------------------------
+### USERS – LISTAR RESERVAS DEL USUARIO (PAGE, opcional body filtro)
+### -------------------------------------------------------------------
+# @name UserBookings
+GET {{base}}/api/users/{{userId}}/bookings/{{page0}}
+Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
-Authorization: Bearer {{token}}
-//reponder un comentario
 
 {
-  "reply": "gracias"
+  "state": "PENDING"
 }
+
+### -------------------------------------------------------------------
+### USERS – LISTAR LUGARES DEL HOST (PAGE)
+### -------------------------------------------------------------------
+# @name HostPlaces
+GET {{base}}/api/users/{{hostId}}/places/host/{{page0}}
+Authorization: Bearer {{tokenHost}}

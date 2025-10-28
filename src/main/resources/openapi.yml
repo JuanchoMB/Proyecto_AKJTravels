@@ -1,975 +1,997 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  title: API de AKJ Travles
+  title: AKJ Travels API
   version: 1.0.1
 servers:
   - url: http://localhost:8080
+security:
+  - bearerAuth: []
 
 paths:
-  /users:
+
+  ############################
+  # AUTH
+  ############################
+  /api/auth:
     post:
       summary: Registrar un nuevo usuario
-      operationId: registerUser
+      tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/UserRegistration'
-            example:
-              name: "Kevyn"
-              surname: "Fel"
-              email: "kevyn@mail.com"
-              phone: "3102381183"
-              birthDate: "2005-01-01"
-              country: "Colombia"
-              password: "MiPassword123"
+            schema: { $ref: '#/components/schemas/CreateUserDTO' }
       responses:
-        '200':
-          description: Usuario registrado correctamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-              example:
-                id: "1"
-                name: "Kevyn"
-                surname: "Fel"
-                email: "Kevyn@mail.com"
         '201':
-          description: CREATED
+          description: Usuario registrado
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: BAD REQUEST (Faltan datos que son requeridos)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ValidationError"
-                message: "Faltan campos requeridos: email, password"
-        '409':
-          description: CONFLICT (Correo repetido)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Conflict"
-                message: "El correo ya está registrado"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+              schema: { $ref: '#/components/schemas/ResponseString' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
 
-  /users/{id}:
-    put:
-      summary: Actualizar datos del usuario
-      operationId: updateUser
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+  /api/auth/login:
+    post:
+      summary: Iniciar sesión
+      tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/UserUpdate'
-            example:
-              name: "Kevyn"
-              surname: "Andrés"
-              phone: "3102381183"
-              profilePicture: "https://miapp.com/profile/Kevyn.png"
+            schema: { $ref: '#/components/schemas/LoginDTO' }
+      responses:
+        '202':
+          description: Token emitido
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseToken' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /api/auth/forgot-password:
+    post:
+      summary: Solicitar código de restablecimiento
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RequestResetPasswordDTO' }
       responses:
         '200':
-          description: Usuario actualizado correctamente
+          description: Código enviado por email
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-              example:
-                id: "1"
-                name: "Kevyn"
-                surname: "Fel"
-                email: "Kevyn@mail.com"
-        '400':
-          description: BAD REQUEST (Faltan datos que son requeridos)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ValidationError"
-                message: "Formato de datos inválido"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Token ausente o inválido"
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Forbidden"
-                message: "No tiene permisos para actualizar este usuario"
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "NotFound"
-                message: "Usuario no encontrado"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+            text/plain:
+              schema: { type: string }
 
+  /api/auth/reset-password:
     patch:
-      summary: Añadir datos al usuario (ej. descripción)
-      operationId: addUserDetails
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      summary: Restablecer contraseña con código
+      tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/UserDetails'
-            example:
-              description: "Me gusta viajar y hospedarme en lugares cerca del mar."
+            schema: { $ref: '#/components/schemas/ResetPasswordDTO' }
       responses:
         '200':
-          description: Datos cargados correctamente
+          description: Contraseña cambiada
+          content:
+            text/plain:
+              schema: { type: string }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  ############################
+  # USERS
+  ############################
+  /api/users/{id}:
+    get:
+      summary: Obtener usuario por id
+      tags: [Users]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Usuario
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-              example:
-                message: "Descripción agregada correctamente"
-        '401':
-          description: Unauthorized
+              schema: { $ref: '#/components/schemas/ResponseUserDTO' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+    put:
+      summary: Editar perfil de usuario
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditUserDTO' }
+      responses:
+        '200':
+          description: Usuario editado
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe iniciar sesión"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Error en el servidor, intente más tarde"
+              schema: { $ref: '#/components/schemas/ResponseString' }
 
     delete:
-      summary: Eliminar usuario
-      operationId: deleteUser
-      security:
-        - BearerAuth: []
+      summary: Eliminar usuario (lógico)
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+        - { $ref: '#/components/parameters/PathId' }
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteUserRequest'
-            example:
-              password: "MiPassword123"
+            schema: { $ref: '#/components/schemas/DeleteUserDTO' }
       responses:
         '200':
-          description: Usuario eliminado correctamente
+          description: Usuario eliminado
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-              example:
-                message: "Usuario eliminado correctamente"
-        '401':
-          description: Unauthorized (no envió token)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Token no proporcionado"
-        '403':
-          description: Forbidden (el usuario no tiene permiso para eliminar otra cuenta)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Forbidden"
-                message: "No tiene permisos para eliminar este usuario"
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "NotFound"
-                message: "Usuario no existe"
-        '409':
-          description: Conflict (no se puede eliminar porque tiene reservas activas)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Conflict"
-                message: "El usuario tiene reservas activas y no puede eliminarse"
+              schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /users/{id}/password:
-    patch:
-      summary: Cambiar contraseña (por decisión del usuario)
-      operationId: changePassword
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PasswordUpdate'
-            example:
-              password: "NuevaClave123"
-      responses:
-        '200':
-          description: Contraseña actualizada correctamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-              example:
-                message: "Contraseña actualizada correctamente"
-        '400':
-          description: BAD REQUEST
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "La nueva contraseña no cumple los requisitos"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "No ha iniciado sesión"
-        '409':
-          description: CONFLICT (misma contraseña)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Conflict"
-                message: "La nueva contraseña no puede ser igual a la anterior"
-
-  /auth/login:
+  /api/users/{id}/host:
     put:
-      summary: Iniciar sesión
-      operationId: login
+      summary: Completar datos de anfitrión
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-            example:
-              email: "Kevyn@mail.com"
-              password: "MiPassword123"
+            schema: { $ref: '#/components/schemas/HostDTO' }
       responses:
         '200':
-          description: Inicio de sesión exitoso
+          description: Datos de host actualizados
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-              example:
-                token: "eyJhbGciOiJI..."
-                expiresIn: 3600
-        '400':
-          description: BAD REQUEST (faltan datos que son requeridos)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "Faltan campos: email o password"
-        '404':
-          description: NOT FOUND (usuario no encontrado)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "NotFound"
-                message: "Usuario no encontrado"
-        '500':
-          description: INTERNAL SERVER ERROR (error inesperado en el servidor)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+              schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /auth/recover:
+  /api/users/{id}:
     patch:
-      summary: Recuperar contraseña (olvidada)
-      operationId: recoverPassword
+      summary: Cambiar contraseña
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/RecoverPasswordRequest'
-            example:
-              email: "Kevyn@mail.com"
-              verificationCode: "123456"
-              newPassword: "NuevaPassword123"
+            schema: { $ref: '#/components/schemas/EditPasswordDTO' }
       responses:
         '200':
-          description: Contraseña actualizada con exito
+          description: Contraseña cambiada
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-              example:
-                message: "Contraseña actualizada con éxito"
-        '400':
-          description: Bad Request (faltan datos o formato inválido)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "Formato inválido o datos faltantes"
-        '401':
-          description: Unauthorized (el código de verificación no es válido o expiró)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Código de verificación inválido o expirado"
-        '404':
-          description: Not Found (el email no está registrado)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "NotFound"
-                message: "El email no está registrado"
-        '500':
-          description: INTERNAL SERVER ERROR (error inesperado del servidor)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+              schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /reservations/{id}:
-    post:
-      summary: Crear una reserva
-      operationId: createReservation
-      security:
-        - BearerAuth: []
+  /api/users/{id}/bookings/{page}:
+    get:
+      summary: Listar reservas del usuario (paginado)
+      tags: [Users, Bookings]
+      security: [ { bearerAuth: [] } ]
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID del alojamiento
+        - { $ref: '#/components/parameters/PathId' }
+        - { $ref: '#/components/parameters/Page' }
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/ReservationRequest'
-            example:
-              checkIn: "2025-09-10"
-              checkOut: "2025-09-15"
-              guestNumber: 2
-      responses:
-        '201':
-          description: Created (reserva creada)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReservationResponse'
-              example:
-                id: "987"
-                checkIn: "2025-09-10"
-                checkOut: "2025-09-15"
-                guestNumber: 2
-                status: "confirmed"
-        '400':
-          description: Bad request (numero de huespedes no permitido)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "Numero de huespedes no permitido"
-        '401':
-          description: Unauthorized (no autenticado)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe iniciar sesión"
-        '409':
-          description: Conflict (alojamiento ocupado)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Conflict"
-                message: "El alojamiento ya está ocupado en esas fechas"
-        '500':
-          description: INTERNAL SERVER ERROR (error inesperado del servidor)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
-
-    patch:
-      summary: Cancelar reserva
-      operationId: cancelReservation
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Reserva cancelada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-              example:
-                message: "Reserva cancelada exitosamente"
-        '400':
-          description: BAD REQUEST (tiempo de cancelacion vencido)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "Ya no puedes cancelar: requiere cancelación con 48 horas de anticipación"
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe iniciar sesión"
-        '500':
-          description: INTERNAL SERVER ERROR (error inesperado en el servidor)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
-
-  /reservations/{id}/status:
-    get:
-      summary: Consultar el estado de una reserva
-      operationId: getReservationStatus
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: El estado de tu reserva
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReservationResponse'
-              example:
-                id: "987"
-                checkIn: "2025-09-10"
-                checkOut: "2025-09-15"
-                guestNumber: 2
-                status: "pending"
-        '204':
-          description: NO CONTENT (no tienes reservas)
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe iniciar sesión para consultar la reserva"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
-
-  /users/{id}/reservations:
-    get:
-      summary: Ver historial de reservas de un usuario
-      operationId: getUserReservations
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: reservationStatus
-          in: query
-          schema:
-            type: string
-        - name: checkIn
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: checkOut
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: guestNumber
-          in: query
-          schema:
-            type: integer
+            schema: { $ref: '#/components/schemas/SearchBookingDTO' }
       responses:
         '200':
           description: Lista de reservas
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReservationResponse'
-              example:
-                - id: "987"
-                  checkIn: "2025-09-10"
-                  checkOut: "2025-09-15"
-                  guestNumber: 2
-                  status: "finished"
-        '204':
-          description: NO CONTENT (no tienes reservas)
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe autenticarse"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+              schema: { $ref: '#/components/schemas/ResponseBookingDTOList' }
 
-  /hosts/{id}/reservations:
+  /api/users/{id}/places/host/{page}:
     get:
-      summary: Ver reservas de un alojamiento de un anfitrión
-      operationId: getHostReservations
-      security:
-        - BearerAuth: []
+      summary: Listar alojamientos del anfitrión (paginado)
+      tags: [Users, Places]
+      security: [ { bearerAuth: [] } ]
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: reservationStatus
-          in: query
-          schema:
-            type: string
-        - name: from
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: guestNumber
-          in: query
-          schema:
-            type: integer
+        - { $ref: '#/components/parameters/PathId' }
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        '200':
+          description: Lista de lugares
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponsePlaceDTOList' }
+
+  ############################
+  # PLACES
+  ############################
+  /api/places/{page}:
+    get:
+      summary: Buscar alojamientos (paginado)
+      tags: [Places]
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
       requestBody:
         required: false
         content:
           application/json:
-            example:
-              reservationStatus: "awaiting"
-              checkIn: "20/08/2025"
-              checkOut: "03/09/2025"
-              guestNumber: "3"
+            schema: { $ref: '#/components/schemas/ListPlaceDTO' }
       responses:
         '200':
-          description: Lista de reservas del alojamiento
+          description: Resultados de búsqueda
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReservationResponse'
-              example:
-                - id: "101"
-                  checkIn: "2025-09-01"
-                  checkOut: "2025-09-05"
-                  guestNumber: 2
-                  status: "confirmed"
-        '204':
-          description: NO CONTENT (no tienes reservas)
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Unauthorized"
-                message: "Debe autenticarse como anfitrión"
-        '500':
-          description: INTERNAL SERVER ERROR
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+              schema: { $ref: '#/components/schemas/ResponsePlaceDTOList' }
 
-  /places:
-    get:
-      summary: Buscar alojamientos disponibles
-      operationId: searchPlaces
+  /api/places:
+    post:
+      summary: Crear alojamiento
+      tags: [Places]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePlaceDTO' }
+      responses:
+        '201':
+          description: Lugar creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  /api/places/{id}:
+    put:
+      summary: Editar alojamiento
+      tags: [Places]
+      security: [ { bearerAuth: [] } ]
       parameters:
-        - name: city
-          in: query
-          schema:
-            type: string
-        - name: checkIn
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: checkOut
-          in: query
-          schema:
-            type: string
-            format: date
+        - { $ref: '#/components/parameters/PathId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditPlaceDTO' }
       responses:
         '200':
-          description: Lista de alojamientos disponibles
+          description: Lugar editado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+    delete:
+      summary: Eliminar alojamiento (lógico)
+      tags: [Places]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Lugar eliminado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  /api/places/{id}/amenities:
+    get:
+      summary: Listar amenidades del alojamiento
+      tags: [Places]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Lista de amenidades
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PlaceResponse'
-              example:
-                - id: "10"
-                  city: "medellin"
-                  name: "Apartamento en Laureles"
-                  capacity: 3
-                  available: true
-        '400':
-          description: Bad Request (error en filtros, fecha de check-in > check-out)
+                $ref: '#/components/schemas/ResponseServicesList'
+
+  /api/places/{id}/comments/{page}:
+    get:
+      summary: Listar comentarios del alojamiento (recientes primero)
+      tags: [Places, Comments]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        '200':
+          description: Comentarios
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseCommentDTOList' }
+
+  /api/places/{bookingId}/comments:
+    post:
+      summary: Crear comentario (reserva COMPLETED)
+      tags: [Places, Comments]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCommentDTO' }
+      responses:
+        '201':
+          description: Comentario creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  /api/places/{id}/bookings/{page}:
+    get:
+      summary: Listar reservas de un alojamiento (paginado)
+      tags: [Places, Bookings]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+        - { $ref: '#/components/parameters/Page' }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SearchBookingPlaceDTO' }
+      responses:
+        '200':
+          description: Reservas del lugar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseBookingDTOList' }
+
+  /api/places/{placeId}/stats:
+    get:
+      summary: Métricas del alojamiento
+      tags: [Places]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: from
+          required: false
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          required: false
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Estadísticas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponsePlaceStatsDTO' }
+
+  /api/places/{id}/detail:
+    get:
+      summary: Obtener detalle de un alojamiento
+      tags: [Places]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Detalle del lugar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponsePlaceDetailDTO' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/places/{placeId}/images:
+    post:
+      summary: Subir imágenes (1 a 10) y marcar principal
+      tags: [Places, Images]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: mainIndex
+          required: true
+          schema: { type: integer, minimum: 0 }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items: { type: string, format: binary }
+              required: [files]
+      responses:
+        '200':
+          description: URLs guardadas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  ############################
+  # BOOKINGS
+  ############################
+  /api/bookings/{id}:
+    post:
+      summary: Crear reserva para el lugar {id}
+      tags: [Bookings]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookingDTO' }
+      responses:
+        '201':
+          description: Reserva creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+    delete:
+      summary: Cancelar/eliminar reserva
+      tags: [Bookings]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Reserva eliminada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  /api/bookings/{id}/confirm:
+    post:
+      summary: Confirmar reserva (flujo de host)
+      tags: [Bookings]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      responses:
+        '200':
+          description: Reserva confirmada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  ############################
+  # FAVORITES
+  ############################
+  /api/favorites/{placeId}:
+    post:
+      summary: Marcar lugar como favorito (mi usuario)
+      tags: [Favorites]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Marcado como favorito
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+    delete:
+      summary: Quitar de favoritos (mi usuario)
+      tags: [Favorites]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Eliminado de favoritos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  /api/favorites/me:
+    get:
+      summary: Listar mis favoritos (paginado)
+      tags: [Favorites]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Página de favoritos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponsePlacePage' }
+
+  /api/favorites/me/{placeId}:
+    get:
+      summary: ¿Este lugar es mi favorito?
+      tags: [Favorites]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: true/false
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "BadRequest"
-                message: "La fecha de check-in debe ser anterior a check-out"
-        '500':
-          description: INTERNAL SERVER ERROR (falla inesperada en el servidor)
+                type: boolean
+
+  /api/favorites/count/{placeId}:
+    get:
+      summary: Número de usuarios que marcaron favorito este lugar
+      tags: [Favorites]
+      parameters:
+        - in: path
+          name: placeId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Conteo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "ServerError"
-                message: "Ocurrió un error inesperado"
+                type: integer
+                format: int64
+
+  ############################
+  # COMMENTS (responder)
+  ############################
+  /api/comments/{commentId}/reply/{idUser}:
+    post:
+      summary: Responder comentario (anfitrión del lugar)
+      tags: [Comments]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: idUser
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReplyDTO' }
+      responses:
+        '200':
+          description: Respuesta creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
+
+  ############################
+  # IMAGES (servicio externo)
+  ############################
+  /api/images:
+    post:
+      summary: Subir una imagen
+      tags: [Images]
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+              required: [file]
+      responses:
+        '200':
+          description: Respuesta del proveedor (id/url)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseMap' }
+
+    delete:
+      summary: Eliminar una imagen por id (proveedor)
+      tags: [Images]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
 
 components:
-  schemas:
-    UserRegistration:
-      type: object
-      required:
-        - name
-        - surname
-        - email
-        - password
-      properties:
-        name:
-          type: string
-          description: Nombre del usuario
-        surname:
-          type: string
-          description: Apellido del usuario
-        email:
-          type: string
-          format: email
-        phone:
-          type: string
-        birthDate:
-          type: string
-          format: date
-        country:
-          type: string
-        password:
-          type: string
-          minLength: 8
-
-    UserUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-        surname:
-          type: string
-        phone:
-          type: string
-        profilePicture:
-          type: string
-
-    UserDetails:
-      type: object
-      required:
-        - description
-      properties:
-        description:
-          type: string
-
-    DeleteUserRequest:
-      type: object
-      required:
-        - password
-      properties:
-        password:
-          type: string
-
-    PasswordUpdate:
-      type: object
-      required:
-        - password
-      properties:
-        password:
-          type: string
-
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-        password:
-          type: string
-
-    RecoverPasswordRequest:
-      type: object
-      required:
-        - email
-        - verificationCode
-        - newPassword
-      properties:
-        email:
-          type: string
-        verificationCode:
-          type: string
-        newPassword:
-          type: string
-
-    ReservationRequest:
-      type: object
-      required:
-        - checkIn
-        - checkOut
-        - guestNumber
-      properties:
-        checkIn:
-          type: string
-          format: date
-        checkOut:
-          type: string
-          format: date
-        guestNumber:
-          type: integer
-
-    ReservationResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        checkIn:
-          type: string
-          format: date
-        checkOut:
-          type: string
-          format: date
-        guestNumber:
-          type: integer
-        status:
-          type: string
-          enum: [pending, confirmed, cancelled, finished]
-
-    PlaceResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        city:
-          type: string
-        name:
-          type: string
-        capacity:
-          type: integer
-        available:
-          type: boolean
-
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        surname:
-          type: string
-        email:
-          type: string
-        country:
-          type: string
-        phone:
-          type: string
-
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-        expiresIn:
-          type: integer
-
-    SuccessResponse:
-      type: object
-      properties:
-        message:
-          type: string
-
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
 
   securitySchemes:
-    BearerAuth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  parameters:
+    PathId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+    Page:
+      in: path
+      name: page
+      required: true
+      schema: { type: integer, minimum: 0 }
+
+  responses:
+    BadRequest:
+      description: Petición inválida
+    Unauthorized:
+      description: No autorizado
+    Conflict:
+      description: Conflicto
+    NotFound:
+      description: No encontrado
+
+  schemas:
+
+    # Wrappers
+    ResponseString:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { type: string, example: "ok" }
+
+    ResponseToken:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/TokenDTO' }
+
+    ResponseUserDTO:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/UserDTO' }
+
+    ResponsePlaceDTOList:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/PlaceDTO' }
+
+    ResponsePlaceDetailDTO:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/PlaceDetailDTO' }
+
+    ResponsePlaceStatsDTO:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:  { $ref: '#/components/schemas/PlaceStatsDTO' }
+
+    ResponseBookingDTOList:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/BookingDTO' }
+
+    ResponseCommentDTOList:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CommentDTO' }
+
+    ResponseServicesList:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Services' }
+
+    ResponseMap:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: object
+          additionalProperties: true
+
+    ResponsePlacePage:
+      type: object
+      properties:
+        error: { type: boolean, example: false }
+        data:
+          type: object
+          properties:
+            content:
+              type: array
+              items: { $ref: '#/components/schemas/PlaceEntitySummary' }
+            totalElements: { type: integer, format: int64, example: 23 }
+            totalPages:    { type: integer, example: 3 }
+            size:          { type: integer, example: 10 }
+            number:        { type: integer, example: 0 }
+
+    # DTOs AUTH/USERS
+    LoginDTO:
+      type: object
+      required: [email, password]
+      properties:
+        email:    { type: string, format: email }
+        password: { type: string, minLength: 7, maxLength: 20 }
+
+    TokenDTO:
+      type: object
+      properties:
+        token: { type: string }
+
+    CreateUserDTO:
+      type: object
+      required: [name, surname, email, phone, birthDate, country, password, role]
+      properties:
+        name:      { type: string }
+        surname:   { type: string }
+        email:     { type: string, format: email }
+        phone:     { type: string }
+        birthDate: { type: string, format: date }
+        country:   { type: string }
+        photoUrl:  { type: string, nullable: true }
+        password:  { type: string, minLength: 8, description: "Debe incluir mayúscula y dígito" }
+        role:      { $ref: '#/components/schemas/Role' }
+
+    EditUserDTO:
+      type: object
+      required: [name, birthDate]
+      properties:
+        name:      { type: string, maxLength: 100 }
+        phone:     { type: string, maxLength: 10, nullable: true }
+        photoUrl:  { type: string, maxLength: 300, nullable: true }
+        birthDate: { type: string, format: date }
+
+    DeleteUserDTO:
+      type: object
+      properties:
+        reason: { type: string, nullable: true }
+
+    EditPasswordDTO:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword: { type: string }
+        newPassword:     { type: string, minLength: 8, description: "Debe incluir mayúscula y dígito" }
+
+    RequestResetPasswordDTO:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+
+    ResetPasswordDTO:
+      type: object
+      required: [code, email, newPassword]
+      properties:
+        code:        { type: string }
+        email:       { type: string, format: email }
+        newPassword: { type: string, minLength: 6 }
+
+    UserDTO:
+      type: object
+      properties:
+        name:      { type: string }
+        email:     { type: string, format: email }
+        photoUrl:  { type: string, nullable: true }
+        birthDate: { type: string, format: date }
+        role:      { $ref: '#/components/schemas/Role' }
+        createdAt: { type: string, format: date-time }
+
+    UserDetailDTO:
+      type: object
+      properties:
+        id:        { type: string }
+        name:      { type: string }
+        photoUrl:  { type: string }
+        createdAt: { type: string, format: date-time }
+
+    # DTOs PLACES
+    CreatePlaceDTO:
+      type: object
+      required: [title, description, price, placeType, capacity, country, department, city, postalCode, amenities, latitude, longitude]
+      properties:
+        title:       { type: string, minLength: 5, maxLength: 25 }
+        description: { type: string, minLength: 20, maxLength: 500 }
+        price:       { type: number, format: double, minimum: 0 }
+        placeType:   { $ref: '#/components/schemas/PlaceType' }
+        capacity:    { type: integer, minimum: 1, maximum: 60 }
+        country:     { type: string, maxLength: 30 }
+        department:  { type: string, maxLength: 30 }
+        city:        { type: string, maxLength: 30 }
+        neighborhood:{ type: string, maxLength: 20, nullable: true }
+        street:      { type: string, nullable: true }
+        postalCode:  { type: string, pattern: '^[0-9A-Za-z]{4,10}$' }
+        amenities:
+          type: array
+          items: { $ref: '#/components/schemas/Services' }
+        latitude:    { type: number, format: float }
+        longitude:   { type: number, format: float }
+
+    EditPlaceDTO:
+      allOf:
+        - $ref: '#/components/schemas/CreatePlaceDTO'
+
+    ListPlaceDTO:
+      type: object
+      properties:
+        city:         { type: string, maxLength: 30, nullable: true }
+        checkIn:      { type: string, format: date-time, nullable: true }
+        checkOut:     { type: string, format: date-time, nullable: true }
+        guest_number: { type: integer, nullable: true }
+        minimum:      { type: number, format: double, nullable: true }
+        maximum:      { type: number, format: double, nullable: true }
+        list:
+          type: array
+          items: { $ref: '#/components/schemas/Services' }
+          nullable: true
+
+    PlaceDTO:
+      type: object
+      properties:
+        title:           { type: string }
+        price:           { type: number, format: double }
+        photo_url:       { type: string }
+        average_rating:  { type: number, format: double }
+        city:            { type: string }
+
+    PlaceDetailDTO:
+      type: object
+      properties:
+        id:             { type: string }
+        latitude:       { type: number, format: float }
+        longitude:      { type: number, format: float }
+        price:          { type: number, format: double }
+        pics_url:
+          type: array
+          items: { type: string }
+        description:    { type: string }
+        services:
+          type: array
+          items: { $ref: '#/components/schemas/Services' }
+        title:          { type: string }
+        capacity:       { type: integer }
+        averageRatings: { type: number, format: double }
+        userDetailDTO:  { $ref: '#/components/schemas/UserDetailDTO' }
+
+    PlaceStatsDTO:
+      type: object
+      properties:
+        reservations:  { type: integer }
+        averageRating: { type: number, format: double }
+
+    PlaceEntitySummary:
+      type: object
+      description: Resumen de entidad Place para favoritos
+      properties:
+        id:             { type: string }
+        title:          { type: string }
+        price:          { type: number, format: double }
+        city:           { type: string }
+        averageRatings: { type: number, format: double }
+
+    # DTOs BOOKINGS/COMMENTS
+    CreateBookingDTO:
+      type: object
+      required: [checkIn, checkOut, guest_number]
+      properties:
+        checkIn:      { type: string, format: date-time }
+        checkOut:     { type: string, format: date-time }
+        guest_number: { type: integer, minimum: 1 }
+
+    BookingDTO:
+      type: object
+      properties:
+        bookingState: { $ref: '#/components/schemas/BookingState' }
+        user:         { $ref: '#/components/schemas/UserDTO' }
+        checkIn:      { type: string, format: date }
+        checkOut:     { type: string, format: date }
+        guest_number: { type: integer }
+
+    SearchBookingDTO:
+      type: object
+      properties:
+        state: { $ref: '#/components/schemas/BookingState', nullable: true }
+
+    SearchBookingPlaceDTO:
+      allOf:
+        - $ref: '#/components/schemas/SearchBookingDTO'
+
+    CreateCommentDTO:
+      type: object
+      required: [rating]
+      properties:
+        comment: { type: string, maxLength: 1000, nullable: true }
+        rating:  { type: integer, minimum: 1, maximum: 5 }
+
+    CommentDTO:
+      type: object
+      properties:
+        user:     { $ref: '#/components/schemas/UserDTO' }
+        rating:   { type: integer, minimum: 1, maximum: 5 }
+        comment:  { type: string }
+
+    ReplyDTO:
+      type: object
+      properties:
+        message: { type: string }
+
+    # ENUMS
+    Role:
+      type: string
+      enum: [USER, HOST, ADMIN]
+
+    PlaceType:
+      type: string
+      enum: [HOUSE, FARM, APARTMENT]
+
+    Services:
+      type: string
+      description: Enumeración extensa definida en tu proyecto
+      enum:
+        - BATHROOM
+        - HAIR_DRYER
+        - CLEANING_PRODUCTS
+        - HOT_WATER
+        - BEDROOM_AND_LAUNDRY
+        - WASHER_IN_BUILDING_PAID
+        - DRYER_IN_BUILDING_PAID
+        - ESSENTIALS
+        - TOWELS_BEDSHEETS_SOAP_TOILET_PAPER
+        - CLOTHES_HANGERS
+        - SHEETS
+        - COTTON_BEDDING_MEMBER_SELECTION
+        - BLACKOUT_CURTAINS
+        - PARKING_AND_FACILITIES
+        - FREE_STREET_PARKING
+        - PAID_OFFSITE_PARKING
+        - PETS_ALLOWED
+        - SERVICE_ANIMALS_ALLOWED
+        - LUGGAGE_DROP_OFF_ALLOWED
+        - LONG_TERM_STAYS_ALLOWED
+        - SELF_CHECK_IN
+        - SMART_LOCK
+        - NOT_INCLUDED
+        - NOT_AVAILABLE_SECURITY_CAMERAS
+        - NOT_AVAILABLE_AIR_CONDITIONING
+        - NOT_AVAILABLE_HEATING
+
+    BookingState:
+      type: string
+      enum: [PENDING, CONFIRMED, CANCELED, COMPLETED]
