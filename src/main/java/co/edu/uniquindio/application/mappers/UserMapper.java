@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.mappers;
 import co.edu.uniquindio.application.dto.userDTO.CreateUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.EditUserDTO;
 import co.edu.uniquindio.application.dto.userDTO.UserDTO;
+import co.edu.uniquindio.application.dto.userDTO.UserDetailDTO;
 import co.edu.uniquindio.application.model.User;
 import org.mapstruct.*;
 
@@ -20,7 +21,7 @@ public interface UserMapper {
 
     User toEntity(CreateUserDTO createUserDTO);
     UserDTO toUserDTO(User user);
-
+    UserDetailDTO toUserDetailDTO(User user);
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "password", ignore = true)
