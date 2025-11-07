@@ -40,7 +40,7 @@ public class PlaceController {
 
 
     @GetMapping("/{page}")
-    public ResponseEntity<ResponseDTO<List<PlaceDTO>>> read(@PathVariable int page, @Valid @RequestBody ListPlaceDTO listPlaceDTO) throws Exception {
+    public ResponseEntity<ResponseDTO<List<PlaceDTO>>> read(@PathVariable int page, @ModelAttribute ListPlaceDTO listPlaceDTO) throws Exception {
         List<PlaceDTO> list = placeService.search(listPlaceDTO, page);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }

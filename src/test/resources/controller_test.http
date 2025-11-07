@@ -25,6 +25,7 @@ Content-Type: application/json
   "phone": "3100000000",
   "birthDate": "1990-01-01",
   "country": "CO",
+  "photoUrl": "hola",
   "password": "ClaveFuerte1",
   "role": "HOST"
 }
@@ -67,7 +68,7 @@ Content-Type: application/json
 }
 > {%
     // Ajusta si tu wrapper es {error, data:{token}}
-    const token = response.body?.data?.token || response.body?.token;
+    const token = response.body?.message?.token || response.body?.token;
     if (token) client.global.set("tokenHost", token);
 %}
 
@@ -150,7 +151,8 @@ Content-Type: application/json
   "postalCode": "630001",
   "amenities": ["PETS_ALLOWED", "FREE_STREET_PARKING", "ESSENTIALS"],
   "latitude": 4.533,
-  "longitude": -75.681
+  "longitude": -75.681,
+  "picsUrl": ["hola1"]
 }
 > {%
     // Si tu respuesta retorna id del lugar en data, guárdalo

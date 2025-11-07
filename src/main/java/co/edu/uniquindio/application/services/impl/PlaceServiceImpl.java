@@ -114,9 +114,14 @@ public class PlaceServiceImpl implements PlaceService {
     @Override
     public List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception {
 
-        if(listPlaceDTO.minimum() != null && listPlaceDTO.maximum() != null && listPlaceDTO.minimum() > listPlaceDTO.maximum()){
+        if(listPlaceDTO.getMinimum() != null && listPlaceDTO.getMaximum() != null && listPlaceDTO.getMinimum() > listPlaceDTO.getMaximum()){
             throw new BadRequestException("el precio minimo no debe superar el precio maximo");
         }
+
+        if(listPlaceDTO.getList() == null){
+            listPlaceDTO.setList(new ArrayList<>());
+        }
+
         Pageable pageable = PageRequest.of(page, 10);
         Page<Place> places = placeRepository.searchPlaces(listPlaceDTO, pageable);
 
