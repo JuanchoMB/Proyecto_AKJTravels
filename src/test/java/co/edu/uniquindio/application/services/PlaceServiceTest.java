@@ -67,7 +67,7 @@ class PlaceServiceTest {
                 "San Antonio",                      // neighborhood
                 "Cra 1 # 2-3",                      // street
                 "A1B2C3",                           // postalCode (patrón 4..10 alfanumérico)
-                List.copyOf(EnumSet.of(Services.WIFI, Services.PARKING_AND_FACILITIES)), // services >=1
+                List.copyOf(EnumSet.of(Services.WIFI, Services.GYM)), // services >=1
                 lat, lon                            // latitude, longitude
         );
     }
@@ -208,7 +208,7 @@ class PlaceServiceTest {
         Place acc = new Place(); acc.setId("a1");
         List<Services> amenities = new ArrayList<>();
         amenities.add(Services.WIFI);
-        amenities.add(Services.PARKING_AND_FACILITIES);
+        amenities.add(Services.POOL);
         acc.setAmenities(amenities);
 
         when(placeRepository.findById("a1")).thenReturn(Optional.of(acc));
