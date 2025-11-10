@@ -32,20 +32,33 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.csrf(AbstractHttpConfigurer::disable).cors(cors -> cors.configurationSource(corsConfigurationSource())).sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
-                                .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll() //listar o .... gets
-                                .requestMatchers("/api/auth/**").permitAll() //login y registro
-                                .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
-                                .requestMatchers("/api/bookings/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER", "HOST")
-                                .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
-                                .requestMatchers(
-                                        "/api/auth/**",
-                                        "/app/**"
-                                ).permitAll()
-                                .anyRequest().authenticated()
+                        // Auth público
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // Places: GET público; crear/editar/eliminar solo HOST
+                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
+
+                        // Users: solo autenticados con rol USER u HOST
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER", "HOST")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
+
+                        // Bookings: mantienes público según tu regla actual
+                        .requestMatchers("/api/bookings/**").permitAll()
+
+                        // Estáticos / app si aplica
+                        .requestMatchers("/app/**").permitAll()
+
+                        // Resto autenticado
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
