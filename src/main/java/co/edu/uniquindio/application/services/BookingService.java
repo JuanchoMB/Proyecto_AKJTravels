@@ -1,8 +1,12 @@
 package co.edu.uniquindio.application.services;
 
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
+import co.edu.uniquindio.application.model.enums.BookingState;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingService {
@@ -13,4 +17,10 @@ public interface BookingService {
     List<BookingDTO> listBookingsUser(String id, int page, SearchBookingDTO searchBookingDTO) throws Exception;
     // Nuevo, requerido por el enunciado (no rompe tus llamadas existentes)
     void confirm(String bookingId) throws Exception;
+
+    List<BookingListItemDTO> listByPlace(String placeId,
+                                         BookingState state,
+                                         LocalDateTime from,
+                                         LocalDateTime to,
+                                         Integer guests) throws Exception;
 }

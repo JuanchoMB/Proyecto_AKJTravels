@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.services.impl;
 
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.exceptions.*;
@@ -12,12 +13,14 @@ import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
+import co.edu.uniquindio.application.repositories.spec.BookingSpecifications;
 import co.edu.uniquindio.application.services.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -164,5 +167,23 @@ public class BookingServiceImpl implements BookingService {
                 .toList();
     }
 
+    @Override
+    public List<BookingListItemDTO> listByPlace(String placeId,
+                                                BookingState state,
+                                                LocalDateTime from,
+                                                LocalDateTime to,
+                                                Integer guests) throws Exception {
+        Specification<Booking> spec = Specification.allOf(
+                BookingSpecifications.byPlaceId(placeId),
+                BookingSpecifications.withState(state),
+                BookingSpecifications.fromDate(from),
+                BookingSpecifications.toDate(to),
+                BookingSpecifications.withGuests(guests)
+        );
 
+        return bookingRepository.findAll(spec)
+                .stream()
+                .map(bookingMapper::toBookingListItemDTO)
+                .toList();
+    }
 }
