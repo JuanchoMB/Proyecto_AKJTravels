@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,9 @@ public class FavoriteController {
         this.favoriteService = favoriteService;
     }
 
+
     /** Marca un lugar como favorito (idempotente). */
+
     @PostMapping("/{placeId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> add(Authentication auth, @PathVariable String placeId) {

@@ -15,8 +15,10 @@ import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.PlaceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,6 +47,7 @@ public class PlaceController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
 
+    @PreAuthorize("hasRole('HOST')")
     @PostMapping
     public ResponseEntity<ResponseDTO<String>> create( @Valid @RequestBody CreatePlaceDTO createPlaceDTO) throws Exception {
         String id = getCurrentUserId();
@@ -159,5 +162,11 @@ public class PlaceController {
         // Si el token guarda el ID directamente como String
         return principal.toString();
     }
-
+    @PreAuthorize("hasRole('HOST')")
+    @GetMapping("/me/{page}")
+    public ResponseEntity<ResponseDTO<List<PlaceDTO>>> listMine(@PathVariable int page) throws Exception {
+        String id = getCurrentUserId();
+        List<PlaceDTO> result = placeService.listAllPlacesHost(id, page);
+        return ResponseEntity.ok(new ResponseDTO<>(false, result));
+    }
 }

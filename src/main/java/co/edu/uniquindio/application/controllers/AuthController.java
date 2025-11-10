@@ -12,7 +12,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +24,25 @@ public class AuthController {
 
     private final UserService userService;
     private final PasswordResetService passwordResetService;
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseDTO<Map<String, Object>>> me(Authentication auth) {
+        // En tu filtro JWT, el "username" es el ID del usuario
+        final String userId = auth.getName();
+
+        // Toma el primer rol (o “GUEST” si no hay)
+        String role = auth.getAuthorities().stream()
+                .findFirst()
+                .map(a -> a.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse("GUEST")
+                .toUpperCase();
+
+        Map<String, Object> payload = Map.of(
+                "userId", userId,
+                "role", role
+        );
+        return ResponseEntity.ok(new ResponseDTO<>(false, payload));
+    }
 
     @PostMapping
     public ResponseEntity<ResponseDTO<String>> create(@Valid @RequestBody CreateUserDTO createUserDTO) throws Exception {
