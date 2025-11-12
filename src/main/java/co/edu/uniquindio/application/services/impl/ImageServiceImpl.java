@@ -27,7 +27,23 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public Map upload(MultipartFile image) throws Exception {
         File file = convert(image);
-        return cloudinary.uploader().upload(file, ObjectUtils.asMap("folder", "AKJTravels"));
+        try {
+            // Sugerencias: usar el nombre original, no sobreescribir y guardar en carpeta
+            Map<String, Object> options = ObjectUtils.asMap(
+                    "folder", "AKJTravels",
+                    "resource_type", "image",
+                    "use_filename", true,
+                    "unique_filename", true,
+                    "overwrite", false
+            );
+            return cloudinary.uploader().upload(file, options);
+        } finally {
+            // limpia el archivo temporal
+            if (file != null && file.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
+        }
     }
 
     @Override

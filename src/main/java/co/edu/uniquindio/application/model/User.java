@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "user") // opcional pero recomendado, `user` es palabra reservada en algunos motores
 public class User {
 
     @Id
@@ -19,6 +20,9 @@ public class User {
 
     @Column(nullable = false, length = 50)
     private String name;
+
+    @Column(length = 50)
+    private String lastName;
 
     @Column(nullable = false, length = 100, unique = true)
     private String email;
@@ -32,16 +36,25 @@ public class User {
     @Column(nullable = false)
     private String country;
 
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 200)
-    private String photoUrl;
+    /**
+     * FOTO DE PERFIL
+     * - Hacemos photoUrl NULLABLE para permitir usuarios sin foto.
+     * - Guardamos photoPublicId para poder borrar en Cloudinary la imagen anterior.
+     */
+    @Column(length = 300)          // quitar nullable=false
+    private String photoUrl;       // puede ser null
 
+    @Column(length = 200)
+    private String photoPublicId;  // nuevo campo, puede ser null
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private State state;
 
@@ -53,5 +66,4 @@ public class User {
 
     @Column(nullable = false)
     private Boolean isHost;
-
 }

@@ -30,41 +30,48 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-      .csrf(AbstractHttpConfigurer::disable)
-      .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-      .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-      .authorizeHttpRequests(req -> req
-        // permitir TODOS los preflights
-        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(req -> req
+                        // Preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-        // Auth público (incluye reset/forgot)
-        .requestMatchers("/api/auth/**").permitAll()
+                        // Auth público
+                        .requestMatchers("/api/auth/**").permitAll()
 
-        // Places
-        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
-        .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
-        .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
-        .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
-        .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
+                        // Places (como ya tenías)
+                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
 
-        // Users
-        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER","HOST")
-        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER","HOST")
+                        // ✅ Users: añadir permisos para actualizar datos, password y foto
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER","HOST")
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER","HOST")
 
-        // Bookings (como lo tenías)
-        .requestMatchers("/api/bookings/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT,   "/api/users/**").hasAnyRole("USER","HOST")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/**").hasAnyRole("USER","HOST")
+                        .requestMatchers(HttpMethod.POST,  "/api/users/*/photo").hasAnyRole("USER","HOST")
+                        .requestMatchers(HttpMethod.DELETE,"/api/users/**").hasAnyRole("USER","HOST")
 
-        .requestMatchers("/app/**").permitAll()
-        .anyRequest().authenticated()
-      )
-      .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
-      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        // Bookings
+                        .requestMatchers("/api/bookings/**").permitAll()
 
-    return http.build();
-  }
+                        // Otros
+                        .requestMatchers("/app/**").permitAll()
+
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 
 
   @Bean

@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
 
 @RestController
@@ -28,7 +30,7 @@ public class UserController {
 
     @PutMapping(("/{id}"))
     public ResponseEntity<ResponseDTO<String>> edit(@PathVariable String id, @Valid @RequestBody EditUserDTO editUserDTO) throws Exception {
-        userService.edit(id, editUserDTO);
+        userService.updateBasicData(id, editUserDTO);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "actualizacion exitosa :)"));
     }
 
@@ -68,5 +70,13 @@ public class UserController {
         List<PlaceDTO> list = placeService.listAllPlacesHost(id, page);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, list));
     }
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<ResponseDTO<String>> updatePhoto(
+            @PathVariable String id,
+            @RequestParam("file") MultipartFile file) throws Exception {
+        userService.updatePhoto(id, file);
+        return ResponseEntity.ok(new ResponseDTO<>(false, "Foto de perfil actualizada"));
+    }
+
 
 }
