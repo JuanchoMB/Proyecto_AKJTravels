@@ -2,6 +2,8 @@ package co.edu.uniquindio.application.dto.placeDTO;
 
 import co.edu.uniquindio.application.dto.userDTO.UserDetailDTO;
 import co.edu.uniquindio.application.model.enums.Services;
+import co.edu.uniquindio.application.model.enums.State;
+
 import java.util.List;
 
 public record PlaceDetailDTO(String id,

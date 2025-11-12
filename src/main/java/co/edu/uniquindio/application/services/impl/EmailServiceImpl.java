@@ -37,9 +37,9 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(mime);
             log.info("Reset email sent to {}", sendEmailDTO.recipient());
         } catch (Exception e) {
-            log.error("Error sending email to {}: {}", sendEmailDTO.recipient(), e.getMessage(), e);
-            // Lanza una excepción clara para que el controlador devuelva 500 con mensaje legible
-            throw new RuntimeException("No se pudo enviar el correo. Verifica las credenciales SMTP o la red.");
+          log.error("Error sending email to {}: {}", sendEmailDTO.recipient(), e.getMessage(), e);
+          throw new RuntimeException("Failed to send email [Subject: '" + sendEmailDTO.subject() +
+            "'], reason: " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
         }
     }
 }

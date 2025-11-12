@@ -10,6 +10,7 @@ import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.BookingState;
+import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
@@ -58,7 +59,9 @@ public class BookingServiceImpl implements BookingService {
 
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
-
+      if (place.getState() != State.ACTIVE) {
+        throw new BadRequestException("El alojamiento no está activo");
+      }
         // === Validación de capacidad ===
         Integer guests = createBookingDTO.guest_number();
 

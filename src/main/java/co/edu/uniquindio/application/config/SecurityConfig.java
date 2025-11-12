@@ -30,56 +30,59 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(req -> req
-                        // Auth público
-                        .requestMatchers("/api/auth/**").permitAll()
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+      .csrf(AbstractHttpConfigurer::disable)
+      .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+      .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(req -> req
+        // permitir TODOS los preflights
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Places: GET público; crear/editar/eliminar solo HOST
-                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
-                        .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
-                        .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
+        // Auth público (incluye reset/forgot)
+        .requestMatchers("/api/auth/**").permitAll()
 
-                        // Users: solo autenticados con rol USER u HOST
-                        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER", "HOST")
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER", "HOST")
+        // Places
+        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+        .requestMatchers(HttpMethod.POST, "/api/places/**").hasRole("HOST")
+        .requestMatchers(HttpMethod.PUT, "/api/places/**").hasRole("HOST")
+        .requestMatchers(HttpMethod.PATCH, "/api/places/**").hasRole("HOST")
+        .requestMatchers(HttpMethod.DELETE, "/api/places/**").hasRole("HOST")
 
-                        // Bookings: mantienes público según tu regla actual
-                        .requestMatchers("/api/bookings/**").permitAll()
+        // Users
+        .requestMatchers(HttpMethod.GET, "/api/users/*/bookings/**").hasAnyRole("USER","HOST")
+        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAnyRole("USER","HOST")
 
-                        // Estáticos / app si aplica
-                        .requestMatchers("/app/**").permitAll()
+        // Bookings (como lo tenías)
+        .requestMatchers("/api/bookings/**").permitAll()
 
-                        // Resto autenticado
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        .requestMatchers("/app/**").permitAll()
+        .anyRequest().authenticated()
+      )
+      .exceptionHandling(ex -> ex.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
+      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowCredentials(true);
+    config.setAllowedOrigins(List.of("http://localhost:4200"));
+    config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+    config.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","X-Requested-With"));
+    config.setExposedHeaders(List.of("Authorization"));
 
-    @Bean
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+  }
+
+
+  @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

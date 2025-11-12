@@ -19,7 +19,6 @@ import org.mapstruct.*;
     @Mapping(target = "location.postalCode", source = "postalCode")
     @Mapping(target = "location.coordinates.latitude", source = "latitude")
     @Mapping(target = "location.coordinates.longitude", source = "longitude")
-
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
     @Mapping(target = "state", constant = "ACTIVE")
     @Mapping(target = "totalRatings", constant = "0")

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PlaceServiceImpl implements PlaceService {
-
+    private final CurrentUserServiceImpl currentUserService;
     private final PlaceMapper placeMapper;
     private final ShowPlaceMapper showPlaceMapper;
     private final PlaceRepository placeRepository;
@@ -81,35 +81,42 @@ public class PlaceServiceImpl implements PlaceService {
     //update
     @Override
     public void edit(String id, EditPlaceDTO editPlaceDTO) throws Exception {
+      Place place = placeRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Alojamiento no encontrado"));
 
-        Optional<Place> place = placeRepository.findById(id);
-        if(place.isEmpty()){
-            throw new ResourceNotFoundException("Place not found");
-        }
-        placeMapper.editPlaceFromDto(editPlaceDTO, place.get());
+      if (place.getState() == State.DELETED) {
+        throw new ValueConflictException("No se puede editar un alojamiento eliminado");
+      }
 
-        placeRepository.save(place.get());
+      placeMapper.editPlaceFromDto(editPlaceDTO, place);
+      placeRepository.save(place);
     }
 
 
-    @Override
-    public void delete(String id) throws Exception {
-        Optional<Place> place = placeRepository.findById(id);
-        if(place.isEmpty()){
-            throw new ResourceNotFoundException("No se encontró el alojamiento");
-        }
-        Optional<Booking> booking = bookingRepository.findByPlaceIdAndBookingState(id, BookingState.PENDING);
-        if(booking.isPresent()){
-            throw new UnauthorizedException("no puedes eliminar este alojamiento, tiene reservas pendientes");
-        }
+  @Override
+  public void delete(String id) throws Exception {
+    Place place = placeRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
 
-        boolean hasFutureActive = bookingRepository.existsByPlace_IdAndCheckInAfterAndBookingStateIn(
-                id, LocalDateTime.now(), List.of(BookingState.PENDING, BookingState.CONFIRMED));
-        if (hasFutureActive) throw new UnauthorizedException("Tiene reservas futuras activas");
-
-        place.get().setState(State.INACTIVE);
-        placeRepository.save(place.get());
+    // (1) Solo el dueño puede eliminar
+    // currentUserService debe existir aquí (inyéctalo como en BookingServiceImpl)
+    String currentUserId = currentUserService.getCurrentUser();
+    if (!Objects.equals(place.getUser().getId(), currentUserId)) {
+      throw new UnauthorizedException("No eres el propietario de este alojamiento");
     }
+
+    // (2) Bloquear si hay reservas futuras activas
+    boolean hasFutureActive = bookingRepository.existsByPlace_IdAndCheckInAfterAndBookingStateIn(
+      id, LocalDateTime.now(), List.of(BookingState.PENDING, BookingState.CONFIRMED)
+    );
+    if (hasFutureActive) {
+      throw new ValueConflictException("No se puede eliminar: tiene reservas futuras activas");
+    }
+
+    // (3) Soft delete
+    place.setState(State.DELETED);
+    placeRepository.save(place);
+  }
 
     @Override
     public List<PlaceDTO> search(ListPlaceDTO listPlaceDTO, int page) throws Exception {

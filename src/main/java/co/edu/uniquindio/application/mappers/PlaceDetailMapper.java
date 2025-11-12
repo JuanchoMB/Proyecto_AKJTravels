@@ -33,6 +33,9 @@ public interface PlaceDetailMapper {
     @Mapping(source = "location.department",       target = "department")
     @Mapping(source = "location.country",          target = "country")
     @Mapping(source = "location.postalCode",       target = "postalCode")
+
+
+
     PlaceDetailDTO toPlaceDetailDTO(Place place);
 
     List<PlaceDetailDTO> toPlaceDetailDTO(List<Place> places);
