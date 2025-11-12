@@ -37,8 +37,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
     @Mock private HostRepository hostRepository;
     @Mock private UserMapper userMapper;
     @Mock private PasswordEncoder passwordEncoder;
@@ -47,7 +46,6 @@ class UserServiceTest {
 
     @InjectMocks
     private UserServiceImpl userService;
-    //private BCryptPasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
@@ -64,56 +62,95 @@ class UserServiceTest {
     @Test
     void create_WhenEmailDoesNotExist_ShouldSaveUser() throws Exception {
         // Arrange
-        CreateUserDTO dto = new CreateUserDTO("Ana", "Tejada", "kevyn.ramirezg@uqvirtual.edu.co", "123", LocalDate.of(2005, 3, 13),"Colombia", "natalia.png", "123",  Role.USER);
+        CreateUserDTO dto = new CreateUserDTO(
+                "Ana", "Tejada",
+                "kevyn.ramirezg@uqvirtual.edu.co",
+                "123",
+                LocalDate.of(2005, 3, 13),
+                "Colombia",
+                "natalia.png",
+                "Passw0rdA",
+                Role.USER
+        );
+
         User user = new User();
         user.setEmail(dto.email());
-        user.setPassword("encoded1234");
+        user.setPassword("encoded1234"); // valor simulado
 
-        // Simulamos comportamientos
         when(userRepository.existsByEmail(dto.email())).thenReturn(false);
         when(userMapper.toEntity(dto)).thenReturn(user);
-        // when(passwordEncoder.encode(dto.password())).thenReturn("encoded1234");
 
         // Act
         userService.create(dto);
 
         // Assert
-        verify(userRepository).save(user); // Verifica que se haya guardado el usuario
+        verify(userRepository).save(user);
     }
 
     @Test
     void create_WhenEmailAlreadyExists_ShouldThrowException() {
         // Arrange
-        CreateUserDTO dto = new CreateUserDTO("Ana", "Tejada", "kevyn.ramirezg@uqvirtual.edu.co", "123", LocalDate.of(2005, 3, 13),"Colombia", "natalia.png", "123",  Role.USER);
+        CreateUserDTO dto = new CreateUserDTO(
+                "Ana", "Tejada",
+                "kevyn.ramirezg@uqvirtual.edu.co",
+                "123",
+                LocalDate.of(2005, 3, 13),
+                "Colombia",
+                "natalia.png",
+                "Passw0rdA",
+                Role.USER
+        );
         when(userRepository.existsByEmail(dto.email())).thenReturn(true);
 
         // Act & Assert
         assertThrows(ValueConflictException.class, () -> userService.create(dto));
         verify(userRepository, never()).save(any());
     }
+
     @Test
     void get_WhenUserExists_ShouldReturnUserDTO() throws Exception {
         User user = new User();
         user.setId("1");
+
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
-        when(userMapper.toUserDTO(user)).thenReturn(new UserDTO("Ana","kevyn.ramirezg@uqvirtual.edu.co", "foto.png", LocalDate.of(2005, 3, 12), Role.USER, LocalDateTime.of(2020,12,13, 2, 45)
-        ));
+        // UserDTO ahora: name, lastName, email, photoUrl, birthDate, role, createdAt
+        when(userMapper.toUserDTO(user)).thenReturn(
+                new UserDTO(
+                        "Ana",
+                        "Ramírez",
+                        "ana@mail.com",
+                        "foto.png",
+                        LocalDate.of(2005, 3, 12),
+                        Role.USER,
+                        LocalDateTime.of(2020, 12, 13, 2, 45)
+                )
+        );
 
         UserDTO dto = userService.get("1");
 
         assertEquals("ana@mail.com", dto.email());
         verify(userRepository).findById("1");
     }
+
     @Test
     void get_WhenUserDoesNotExist_ShouldThrowException() {
         when(userRepository.findById("1")).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> userService.get("1"));
     }
+
     @Test
     void edit_WhenUserExists_ShouldUpdateUser() throws Exception {
         User user = new User();
         user.setId("1");
-        EditUserDTO updateDto = new EditUserDTO("Ana","321554", "url.png",LocalDate.of(2005, 3, 13 ));
+
+        // EditUserDTO ahora: name, lastName, phone, photoUrl, birthDate
+        EditUserDTO updateDto = new EditUserDTO(
+                "Ana",
+                "Ramírez",
+                "321554",
+                "url.png",
+                LocalDate.of(2005, 3, 13)
+        );
 
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
         when(imageValidators.isValid(updateDto.photoUrl())).thenReturn(true);
@@ -140,11 +177,12 @@ class UserServiceTest {
         verify(userRepository).save(user);
         verify(hostRepository).save(host);
     }
+
     @Test
     void delete_WhenPasswordMatches_ShouldSetInactive() throws Exception {
         User user = new User();
         user.setId("1");
-        user.setPassword(passwordEncoder.encode("1234"));
+        user.setPassword("encoded"); // evita passwordEncoder.encode(null)
         DeleteUserDTO dto = new DeleteUserDTO("1234");
 
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
@@ -155,10 +193,11 @@ class UserServiceTest {
         assertEquals(State.INACTIVE, user.getState());
         verify(userRepository).save(user);
     }
+
     @Test
     void delete_WhenPasswordWrong_ShouldThrowException() {
         User user = new User();
-        user.setPassword(passwordEncoder.encode("1234"));
+        user.setPassword("encoded"); // simulado
         DeleteUserDTO dto = new DeleteUserDTO("wrong");
 
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
@@ -167,13 +206,14 @@ class UserServiceTest {
         assertThrows(ValueConflictException.class, () -> userService.delete("1", dto));
         verify(userRepository, never()).save(any());
     }
+
     @Test
     void login_WhenCredentialsValid_ShouldReturnToken() throws Exception {
         User user = new User();
         user.setId("1");
         user.setEmail("kevyn.ramirezg@uqvirtual.edu.co");
         user.setName("kevyn");
-        user.setPassword(passwordEncoder.encode("1234"));
+        user.setPassword("encoded"); // simulado
         user.setRole(Role.USER);
 
         LoginDTO dto = new LoginDTO("kevyn.ramirezg@uqvirtual.edu.co", "1234");
@@ -186,6 +226,7 @@ class UserServiceTest {
 
         assertEquals("token123", token.token());
     }
+
     @Test
     void login_WhenUserNotFound_ShouldThrowException() {
         LoginDTO dto = new LoginDTO("noexiste@mail.com", "1234");
@@ -193,10 +234,11 @@ class UserServiceTest {
 
         assertThrows(ResourceNotFoundException.class, () -> userService.login(dto));
     }
+
     @Test
     void changePassword_WhenOldPasswordMatches_ShouldUpdatePassword() throws Exception {
         User user = new User();
-        user.setPassword(passwordEncoder.encode("1234"));
+        user.setPassword("encoded"); // simulado
         EditPasswordDTO dto = new EditPasswordDTO("1234", "nueva");
 
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
@@ -206,10 +248,11 @@ class UserServiceTest {
 
         verify(userRepository).save(user);
     }
+
     @Test
     void changePassword_WhenOldPasswordWrong_ShouldThrowException() {
         User user = new User();
-        user.setPassword(passwordEncoder.encode("1234"));
+        user.setPassword("encoded"); // simulado
         EditPasswordDTO dto = new EditPasswordDTO("mal", "nueva");
 
         when(userRepository.findById("1")).thenReturn(Optional.of(user));
@@ -217,7 +260,4 @@ class UserServiceTest {
 
         assertThrows(BadRequestException.class, () -> userService.changePassword("1", dto));
     }
-
-
 }
-

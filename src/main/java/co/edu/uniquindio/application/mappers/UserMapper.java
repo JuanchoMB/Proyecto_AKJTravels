@@ -18,10 +18,18 @@ public interface UserMapper {
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "isHost", constant = "false")
     @Mapping(target = "description", ignore = true)
-
+    // 👇 clave: CreateUserDTO.surname -> User.lastName
+    @Mapping(target = "lastName", source = "surname")
     User toEntity(CreateUserDTO createUserDTO);
+
+    // UserDTO ya incluye lastName: mapea automático por nombre
     UserDTO toUserDTO(User user);
+
+    // UserDetailDTO ya incluye lastName: mapea automático por nombre
     UserDetailDTO toUserDetailDTO(User user);
+
+    // Patch update: ignora nulls
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "password", ignore = true)
@@ -31,9 +39,4 @@ public interface UserMapper {
     @Mapping(target = "isHost", ignore = true)
     @Mapping(target = "description", ignore = true)
     void editUserFromDto(EditUserDTO editUserDTO, @MappingTarget User user);
-
-
-
-
-
 }

@@ -15,6 +15,7 @@ import co.edu.uniquindio.application.model.enums.State;
 import co.edu.uniquindio.application.repositories.HostRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.security.JWTUtils;
+import co.edu.uniquindio.application.services.ImageService;
 import co.edu.uniquindio.application.services.UserService;
 import co.edu.uniquindio.application.validators.ImageValidators;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +37,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JWTUtils jwtUtils;
     private final HostRepository hostRepository;
-    private final ImageValidators  imageValidators;
+    private final ImageValidators imageValidators;
+    private final ImageService imageService;
 
     @Override
     @Transactional
@@ -44,19 +49,15 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userMapper.toEntity(createUserDTO);
-
         user.setPassword(encode(createUserDTO.password()));
-
         userRepository.save(user);
 
-        if(createUserDTO.role() == Role.HOST){
+        if (createUserDTO.role() == Role.HOST) {
             HostProfile host = new HostProfile();
             host.setUser(user);
             host.setId(user.getId());
             hostRepository.save(host);
-
         }
-
     }
 
     @Override
@@ -72,13 +73,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void edit(String id, EditUserDTO editUserDTO) throws Exception {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         if (editUserDTO.photoUrl() != null && !imageValidators.isValid(editUserDTO.photoUrl())) {
             throw new ValueConflictException("El formato de imagen no es valido");
         }
-        userMapper.editUserFromDto(editUserDTO, user);
 
+        // Edit "completo" vía mapper (si tu mapper toca email, allí se controla)
+        userMapper.editUserFromDto(editUserDTO, user);
         userRepository.save(user);
     }
 
@@ -86,11 +89,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void addDataHost(String id, HostDTO hostDTO) throws Exception {
 
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         HostProfile host = hostRepository.findByUserId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil de anfitrión no encontrado"));
 
-        if(hostDTO.description() == null || hostDTO.description().isBlank()){
+        if (hostDTO.description() == null || hostDTO.description().isBlank()) {
             throw new ValueConflictException("Descripcion requerida para ser anfitrion");
         }
         user.setDescription(hostDTO.description().trim());
@@ -98,7 +102,6 @@ public class UserServiceImpl implements UserService {
         user.setIsHost(true);
         userRepository.save(user);
         hostRepository.save(host);
-
     }
 
     @Override
@@ -109,7 +112,7 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("Usuario no encontrado");
         }
 
-        if(!passwordEncoder.matches(deleteUserDTO.password(), optionalUser.get().getPassword())){
+        if (!passwordEncoder.matches(deleteUserDTO.password(), optionalUser.get().getPassword())) {
             throw new ValueConflictException("La contraseña es incorrecta");
         }
 
@@ -118,37 +121,37 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
 
     @Override
     public TokenDTO login(LoginDTO loginDTO) throws Exception {
         Optional<User> optionalUser = userRepository.findByEmail(loginDTO.email());
 
-        if(optionalUser.isEmpty()){
+        if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("El usuario no existe");
         }
 
         User user = optionalUser.get();
 
-        if(!passwordEncoder.matches(loginDTO.password(), user.getPassword())){
+        if (!passwordEncoder.matches(loginDTO.password(), user.getPassword())) {
             throw new ResourceNotFoundException("El usuario no existe");
         }
 
         String token = jwtUtils.generateToken(user.getId(), createClaims(user));
-        System.out.println(user.getId() + "" + user.getRole().toString() );
+        System.out.println(user.getId() + "" + user.getRole().toString());
         return new TokenDTO(token);
     }
 
     @Override
     public void changePassword(String id, EditPasswordDTO editPasswordDTO) throws Exception {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("Usuario no encontrado");
-        }
-        User user = optionalUser.get();
-        if(!passwordEncoder.matches(editPasswordDTO.old_password(), user.getPassword())){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (!passwordEncoder.matches(editPasswordDTO.old_password(), user.getPassword())) {
             throw new BadRequestException("la contraseña no coincide");
         }
 
@@ -156,16 +159,73 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    private Map<String, String> createClaims(User user){
+    // ========= MÉTODOS NUEVOS que exige la interfaz =========
+
+    /** Perfil detallado para /api/auth/me (según tu UserDetailDTO: id, name, photoUrl, createdAt) */
+    @Override
+    public UserDetailDTO getUserDetailById(String id) throws Exception {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+        return new UserDetailDTO(u.getId(), u.getName(), u.getLastName(), u.getPhotoUrl(), u.getCreatedAt());
+    }
+
+    @Override
+    public void updateBasicData(String id, EditUserDTO dto) throws Exception {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (dto.name() != null)     u.setName(dto.name().trim());
+        if (dto.lastName() != null) u.setLastName(dto.lastName().trim());
+        if (dto.phone() != null)    u.setPhone(dto.phone().trim());
+        if (dto.photoUrl() != null) {
+            if (!imageValidators.isValid(dto.photoUrl())) throw new ValueConflictException("El formato de imagen no es valido");
+            u.setPhotoUrl(dto.photoUrl().trim());
+        }
+        // if (dto.birthDate() != null) u.setBirthDate(dto.birthDate());
+        userRepository.save(u);
+    }
+
+    // ========================================================
+
+    private Map<String, String> createClaims(User user) {
         return Map.of(
                 "email", user.getEmail(),
                 "name", user.getName(),
-                "role", "ROLE_"+user.getRole().name()
+                "role", "ROLE_" + user.getRole().name()
         );
     }
 
-    private String encode(String password){
+    private String encode(String password) {
         var passwordEncoder = new BCryptPasswordEncoder();
         return passwordEncoder.encode(password);
     }
+    @Override
+    public void updatePhoto(String id, MultipartFile file) throws Exception {
+        if (file == null || file.isEmpty()) throw new BadRequestException("Debes adjuntar una imagen");
+
+        String ct = file.getContentType() != null ? file.getContentType() : "";
+        if (!ct.startsWith("image/")) throw new ValueConflictException("El archivo debe ser una imagen");
+        if (file.getSize() > 5L * 1024 * 1024) throw new ValueConflictException("La imagen no debe superar 5 MB");
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        // Sube
+        Map<?, ?> uploadRes = imageService.upload(file);
+        String url = (String) (uploadRes.get("secure_url") != null ? uploadRes.get("secure_url") : uploadRes.get("url"));
+        String publicId = (String) uploadRes.get("public_id");
+        if (url == null || url.isBlank()) throw new ValueConflictException("La carga no devolvió una URL válida");
+
+        // Borra la anterior si existe
+        if (user.getPhotoPublicId() != null && !user.getPhotoPublicId().isBlank()) {
+            try { imageService.delete(user.getPhotoPublicId()); } catch (Exception ignored) {}
+        }
+
+        user.setPhotoUrl(url.trim());
+        user.setPhotoPublicId(publicId);
+        userRepository.save(user);
+    }
+
+
+
 }

@@ -6,11 +6,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Builder
-public record UserDTO(String name,
-                      String email,
-                      String photoUrl,
-                      LocalDate birthDate,
-                      Role role,
-                      LocalDateTime createdAt
-) {
-}
+public record UserDTO(
+        String name,
+        String lastName,      // ⬅️ NUEVO
+        String email,
+        String photoUrl,
+        LocalDate birthDate,
+        Role role,
+        LocalDateTime createdAt
+) {}
