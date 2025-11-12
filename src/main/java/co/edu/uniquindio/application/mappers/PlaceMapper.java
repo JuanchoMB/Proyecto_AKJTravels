@@ -25,6 +25,10 @@ import org.mapstruct.*;
     @Mapping(target = "averageRatings", constant = "0")
     @Mapping(target = "comments", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+
+
+
 
     Place toEntity(CreatePlaceDTO createPlaceDTO);
     CreatePlaceDTO toCreatePlaceDTO(Place place);
