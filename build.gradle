@@ -54,6 +54,9 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
+    //email
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // Para los web Sockets
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 

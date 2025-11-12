@@ -47,6 +47,18 @@ paths:
               schema: { $ref: '#/components/schemas/ResponseToken' }
         '401': { $ref: '#/components/responses/Unauthorized' }
 
+  /api/auth/me:
+    get:
+      summary: Obtener información del token (userId, role)
+      tags: [Auth]
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: Información del usuario autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseMap' }
+
   /api/auth/forgot-password:
     post:
       summary: Solicitar código de restablecimiento
@@ -133,6 +145,23 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
 
+    patch:
+      summary: Cambiar contraseña
+      tags: [Users]
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - { $ref: '#/components/parameters/PathId' }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EditPasswordDTO' }
+      responses:
+        '200':
+          description: Contraseña cambiada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResponseString' }
   /api/users/{id}/host:
     put:
       summary: Completar datos de anfitrión
@@ -152,25 +181,6 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/ResponseString' }
 
-  /api/users/{id}:
-    patch:
-      summary: Cambiar contraseña
-      tags: [Users]
-      security: [ { bearerAuth: [] } ]
-      parameters:
-        - { $ref: '#/components/parameters/PathId' }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/EditPasswordDTO' }
-      responses:
-        '200':
-          description: Contraseña cambiada
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ResponseString' }
-
   /api/users/{id}/bookings/{page}:
     get:
       summary: Listar reservas del usuario (paginado)
@@ -178,7 +188,7 @@ paths:
       security: [ { bearerAuth: [] } ]
       parameters:
         - { $ref: '#/components/parameters/PathId' }
-        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PathPage' }
       requestBody:
         required: false
         content:
@@ -198,7 +208,7 @@ paths:
       security: [ { bearerAuth: [] } ]
       parameters:
         - { $ref: '#/components/parameters/PathId' }
-        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PathPage' }
       responses:
         '200':
           description: Lista de lugares
@@ -214,7 +224,7 @@ paths:
       summary: Buscar alojamientos (paginado)
       tags: [Places]
       parameters:
-        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PathPage' }
       requestBody:
         required: false
         content:
@@ -296,7 +306,7 @@ paths:
       tags: [Places, Comments]
       parameters:
         - { $ref: '#/components/parameters/PathId' }
-        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PathPage' }
       responses:
         '200':
           description: Comentarios
@@ -333,7 +343,7 @@ paths:
       security: [ { bearerAuth: [] } ]
       parameters:
         - { $ref: '#/components/parameters/PathId' }
-        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PathPage' }
       requestBody:
         required: false
         content:
@@ -480,11 +490,8 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
-          description: Marcado como favorito
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ResponseString' }
+        '204':
+          description: Marcado como favorito (No Content)
 
     delete:
       summary: Quitar de favoritos (mi usuario)
@@ -496,11 +503,8 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
-          description: Eliminado de favoritos
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ResponseString' }
+        '204':
+          description: Eliminado de favoritos (No Content)
 
   /api/favorites/me:
     get:
@@ -508,10 +512,7 @@ paths:
       tags: [Favorites]
       security: [ { bearerAuth: [] } ]
       parameters:
-        - in: query
-          name: page
-          required: false
-          schema: { type: integer, minimum: 0, default: 0 }
+        - { $ref: '#/components/parameters/QueryPage' }
       responses:
         '200':
           description: Página de favoritos
@@ -638,11 +639,16 @@ components:
       name: id
       required: true
       schema: { type: string }
-    Page:
+    PathPage:
       in: path
       name: page
       required: true
       schema: { type: integer, minimum: 0 }
+    QueryPage:
+      in: query
+      name: page
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
 
   responses:
     BadRequest:
@@ -823,6 +829,16 @@ components:
         createdAt: { type: string, format: date-time }
 
     # DTOs PLACES
+    HostDTO:
+      type: object
+      properties:
+        description: { type: string, nullable: true }
+        languages:
+          type: array
+          items: { type: string }
+          nullable: true
+        verified: { type: boolean, nullable: true }
+
     CreatePlaceDTO:
       type: object
       required: [title, description, price, placeType, capacity, country, department, city, postalCode, amenities, latitude, longitude]
@@ -835,7 +851,10 @@ components:
         country:     { type: string, maxLength: 30 }
         department:  { type: string, maxLength: 30 }
         city:        { type: string, maxLength: 30 }
-        neighborhood:{ type: string, maxLength: 20, nullable: true }
+        neighborhood:
+          type: string
+          maxLength: 20
+          nullable: true
         street:      { type: string, nullable: true }
         postalCode:  { type: string, pattern: '^[0-9A-Za-z]{4,10}$' }
         amenities:
@@ -843,7 +862,6 @@ components:
           items: { $ref: '#/components/schemas/Services' }
         latitude:    { type: number, format: float }
         longitude:   { type: number, format: float }
-
     EditPlaceDTO:
       allOf:
         - $ref: '#/components/schemas/CreatePlaceDTO'
@@ -927,7 +945,10 @@ components:
     SearchBookingDTO:
       type: object
       properties:
-        state: { $ref: '#/components/schemas/BookingState', nullable: true }
+        state:
+          oneOf:
+            - $ref: '#/components/schemas/BookingState'
+            - type: 'null'
 
     SearchBookingPlaceDTO:
       allOf:

@@ -1,15 +1,22 @@
 @base = http://localhost:8080
 @page0 = 0
+@size10 = 10
 
 ### -------------------------------------------------------------------
 ### VARIABLES MANUALES (si tu API NO devuelve ids en respuestas)
-### Completa estos valores si las pruebas que las obtienen automáticamente no te sirven.
 ### -------------------------------------------------------------------
 @hostId = REEMPLAZA_CON_ID_HOST
 @userId = REEMPLAZA_CON_ID_USER
-@placeId = REEMPLAZA_CON_ID_PLACE
-@bookingId = REEMPLAZA_CON_ID_BOOKING
+@placeId = 40ed073c-e260-4a6d-9760-aece23f0e1d3
+@bookingId = a1fad456-acac-4cf6-ad99-b09fcb696b90
 @commentId = REEMPLAZA_CON_ID_COMMENT
+@tokenHost = eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiUk9MRV9IT1NUIiwibmFtZSI6Ikhvc3QgVGVzdCIsImVtYWlsIjoiaG9zdEB0ZXN0LmNvbSIsInN1YiI6ImEyODJmNjQxLWE0YTAtNGQ4Yi04OGY1LTQ4MDgwZTVjM2I4MyIsImlhdCI6MTc2MjkyMDI1MSwiZXhwIjoxNzYyOTIzODUxfQ.N_TWcdc0VeSCLR7kVLbaByuwIMeP_pHmlNvd14_Bz5HWGA7qeMjXeRM9gmPSJ-j7
+@tokenUser = eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiUk9MRV9VU0VSIiwibmFtZSI6IlVzZXIgVGVzdCIsImVtYWlsIjoidXNlckB0ZXN0LmNvbSIsInN1YiI6IjA1YjMyNjM3LTc5MzQtNGMyOS1iNGMxLTUxZDY5MjkyNTlmOCIsImlhdCI6MTc2MjkyMDQ1MCwiZXhwIjoxNzYyOTI0MDUwfQ.N6Okl2-uIc7zUFN90PkeHDt-Q32lTj8T-pfanu-t0Zz6pUMO4giPFRh4znvNEAWN
+# Fechas fijas (ISO 8601)
+@checkIn  = 2025-11-20T15:00:00Z
+@checkOut = 2025-11-22T11:00:00Z
+@from = 2025-10-12T00:00:00Z
+@to   = 2025-12-12T00:00:00Z
 
 ### -------------------------------------------------------------------
 ### AUTH – REGISTRO HOST
@@ -25,14 +32,11 @@ Content-Type: application/json
   "phone": "3100000000",
   "birthDate": "1990-01-01",
   "country": "CO",
-  "photoUrl": "hola",
+  "photoUrl": "https://picsum.photos/200",
   "password": "ClaveFuerte1",
   "role": "HOST"
 }
-> {%
-    // Ajusta según tu ResponseDTO; si devuelves id en data, extráelo aquí.
-    // client.global.set("hostId", response.body.data?.id);
-%}
+> {% client.log("Registro host status: " + response.status); %}
 
 ### -------------------------------------------------------------------
 ### AUTH – REGISTRO USER
@@ -48,12 +52,11 @@ Content-Type: application/json
   "phone": "3110000000",
   "birthDate": "1995-02-02",
   "country": "CO",
+  "photoUrl": "https://picsum.photos/200",
   "password": "ClaveFuerte1",
   "role": "USER"
 }
-> {%
-    // client.global.set("userId", response.body.data?.id);
-%}
+> {% client.log("Registro user status: " + response.status); %}
 
 ### -------------------------------------------------------------------
 ### LOGIN HOST  → tokenHost
@@ -67,9 +70,9 @@ Content-Type: application/json
   "password": "ClaveFuerte1"
 }
 > {%
-    // Ajusta si tu wrapper es {error, data:{token}}
-    const token = response.body?.message?.token || response.body?.token;
+    const token = response.body?.data?.token;
     if (token) client.global.set("tokenHost", token);
+    client.log("tokenHost set: " + Boolean(token));
 %}
 
 ### -------------------------------------------------------------------
@@ -84,12 +87,20 @@ Content-Type: application/json
   "password": "ClaveFuerte1"
 }
 > {%
-    const token = response.body?.data?.token || response.body?.token;
+    const token = response.body?.data?.token;
     if (token) client.global.set("tokenUser", token);
+    client.log("tokenUser set: " + Boolean(token));
 %}
 
 ### -------------------------------------------------------------------
-### USERS – COMPLETAR DATOS DE HOST (si tu endpoint lo usa)
+### AUTH – ME (USER autenticado)
+### -------------------------------------------------------------------
+# @name MeUser
+GET {{base}}/api/auth/me
+Authorization: Bearer {{tokenUser}}
+
+### -------------------------------------------------------------------
+### USERS – COMPLETAR DATOS DE HOST (HostDTO requiere campos)
 ### -------------------------------------------------------------------
 # @name CompleteHost
 PUT {{base}}/api/users/{{hostId}}/host
@@ -97,8 +108,11 @@ Authorization: Bearer {{tokenHost}}
 Content-Type: application/json
 
 {
-  "about": "Anfitrión de prueba",
-  "phone": "3100000000"
+  "about": "Anfitrión de prueba verificado",
+  "phone": "3100000000",
+  "documentType": "CC",
+  "documentNumber": "1234567890",
+  "emergencyPhone": "3200000000"
 }
 
 ### -------------------------------------------------------------------
@@ -112,7 +126,7 @@ Content-Type: application/json
 {
   "name": "User Test Editado",
   "phone": "3110000001",
-  "photoUrl": "https://picsum.photos/200",
+  "photoUrl": "https://picsum.photos/300",
   "birthDate": "1995-02-02"
 }
 
@@ -141,6 +155,7 @@ Content-Type: application/json
   "title": "Finca Demo",
   "description": "Hermosa finca de prueba con todo lo necesario.",
   "price": 250000,
+  "picsUrl": ["hola"],
   "placeType": "FARM",
   "capacity": 5,
   "country": "CO",
@@ -149,14 +164,14 @@ Content-Type: application/json
   "neighborhood": "La Florida",
   "street": "Km 3",
   "postalCode": "630001",
-  "amenities": ["PETS_ALLOWED", "FREE_STREET_PARKING", "ESSENTIALS"],
+  "amenities": ["WIFI", "PARKING", "POOL"],
   "latitude": 4.533,
-  "longitude": -75.681,
-  "picsUrl": ["hola1"]
+  "longitude": -75.681
 }
 > {%
-    // Si tu respuesta retorna id del lugar en data, guárdalo
-    // client.global.set("placeId", response.body?.data?.id || response.body?.data);
+    // Si tu API devuelve id del lugar en data (string o {id}), descomenta:
+    // const id = typeof response.body?.data === 'string' ? response.body.data : response.body?.data?.id;
+    // if (id) client.global.set("placeId", id);
 %}
 
 ### -------------------------------------------------------------------
@@ -192,20 +207,13 @@ GET {{base}}/api/places/{{placeId}}/detail
 GET {{base}}/api/places/{{placeId}}/amenities
 
 ### -------------------------------------------------------------------
-### PLACES – BÚSQUEDA PAGINADA (10/pg)
+### PLACES – BÚSQUEDA PAGINADA (?page&size y filtros por query)
 ### -------------------------------------------------------------------
 # @name SearchPlaces
-GET {{base}}/api/places/{{page0}}
-Content-Type: application/json
-
-{
-  "city": "Armenia",
-  "minimum": 100000,
-  "maximum": 400000
-}
+GET {{base}}/api/places?page={{page0}}&size={{size10}}&city=Armenia&minimum=100000&maximum=400000
 
 ### -------------------------------------------------------------------
-### BOOKINGS – CREAR RESERVA (USER) – Caso OK (5 días adelante)
+### BOOKINGS – CREAR RESERVA (USER)
 ### -------------------------------------------------------------------
 # @name CreateBooking_ok
 POST {{base}}/api/bookings/{{placeId}}
@@ -213,28 +221,18 @@ Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
 
 {
-  "checkIn": "{{now+5d}}T15:00:00",
-  "checkOut": "{{now+7d}}T11:00:00",
+  "checkIn": "2025-11-16T15:00:00",
+  "checkOut": "2025-11-18T11:00:00",
   "guest_number": 2
 }
 > {%
-    // Guarda bookingId si tu API lo retorna en data
-    // client.global.set("bookingId", response.body?.data?.id || response.body?.data);
+    // Extrae bookingId según el wrapper de tu API: ajusta si tu respuesta difiere
+    try {
+      const body = JSON.parse(response.body);
+      const bid = body?.message?.data?.id || body?.message?.data || body?.data?.id || body?.data || body?.message;
+      if (bid) client.global.set("bookingId", bid);
+    } catch(e) { }
 %}
-
-### -------------------------------------------------------------------
-### BOOKINGS – CREAR RESERVA (USER) – Caso ERROR (solape o <1 noche)
-### -------------------------------------------------------------------
-# @name CreateBooking_error
-POST {{base}}/api/bookings/{{placeId}}
-Authorization: Bearer {{tokenUser}}
-Content-Type: application/json
-
-{
-  "checkIn": "{{now+6d}}T15:00:00",
-  "checkOut": "{{now+6d}}T18:00:00",
-  "guest_number": 2
-}
 
 ### -------------------------------------------------------------------
 ### BOOKINGS – CONFIRMAR RESERVA (HOST)
@@ -244,28 +242,7 @@ POST {{base}}/api/bookings/{{bookingId}}/confirm
 Authorization: Bearer {{tokenHost}}
 
 ### -------------------------------------------------------------------
-### BOOKINGS – CANCELAR (USER) – Caso ERROR (dentro de 48h)
-### -------------------------------------------------------------------
-# @name CreateBooking_48h
-POST {{base}}/api/bookings/{{placeId}}
-Authorization: Bearer {{tokenUser}}
-Content-Type: application/json
-
-{
-  "checkIn": "{{now+36h}}",
-  "checkOut": "{{now+60h}}",
-  "guest_number": 1
-}
-> {%
-    // client.global.set("bookingId48", response.body?.data?.id || response.body?.data);
-%}
-
-# @name CancelBooking_fail48
-DELETE {{base}}/api/bookings/{{bookingId48}}
-Authorization: Bearer {{tokenUser}}
-
-### -------------------------------------------------------------------
-### BOOKINGS – CANCELAR (USER) – Caso OK (>48h)
+### BOOKINGS – CANCELAR (USER) – OK (>48h si tu dominio lo exige)
 ### -------------------------------------------------------------------
 # @name CancelBooking_ok
 DELETE {{base}}/api/bookings/{{bookingId}}
@@ -279,30 +256,31 @@ POST {{base}}/api/favorites/{{placeId}}
 Authorization: Bearer {{tokenUser}}
 
 ### -------------------------------------------------------------------
-### FAVORITES – IS MINE?
+### FAVORITES – IS MINE? (ResponseBoolean)
 ### -------------------------------------------------------------------
 # @name FavIsMine
 GET {{base}}/api/favorites/me/{{placeId}}
 Authorization: Bearer {{tokenUser}}
 
 ### -------------------------------------------------------------------
-### FAVORITES – LIST MINE (PAGE)
+### FAVORITES – LIST MINE (paginado)
 ### -------------------------------------------------------------------
 # @name FavListMine
-GET {{base}}/api/favorites/me?page=0
+GET {{base}}/api/favorites/me?page={{page0}}&size={{size10}}
 Authorization: Bearer {{tokenUser}}
 
 ### -------------------------------------------------------------------
-### FAVORITES – COUNT (PÚBLICO)
+### FAVORITES – COUNT (público)
 ### -------------------------------------------------------------------
 # @name FavCount
 GET {{base}}/api/favorites/count/{{placeId}}
 
 ### -------------------------------------------------------------------
-### COMMENTS – (NEGATIVO) Crear comentario ANTES de COMPLETED (debe fallar 400)
+### COMMENTS – (NEGATIVO) Crear comentario ANTES de COMPLETED → 400
+###  (Ahora el endpoint correcto es por bookingId, NO por place)
 ### -------------------------------------------------------------------
 # @name Comment_beforeCompleted
-POST {{base}}/api/places/{{bookingId}}/comments
+POST {{base}}/api/bookings/{{bookingId}}/comments
 Authorization: Bearer {{tokenUser}}
 Content-Type: application/json
 
@@ -312,10 +290,10 @@ Content-Type: application/json
 }
 
 ### -------------------------------------------------------------------
-### COMMENTS – LISTAR POR LUGAR (recientes primero)
+### COMMENTS – LISTAR POR LUGAR (recientes primero, paginado)
 ### -------------------------------------------------------------------
 # @name ListComments
-GET {{base}}/api/places/{{placeId}}/comments/{{page0}}
+GET {{base}}/api/places/{{placeId}}/comments?page={{page0}}&size={{size10}}
 
 ### -------------------------------------------------------------------
 ### COMMENTS – RESPONDER (HOST)
@@ -333,24 +311,19 @@ Content-Type: application/json
 ### STATS – MÉTRICAS DEL LUGAR (HOST)
 ### -------------------------------------------------------------------
 # @name PlaceStats
-GET {{base}}/api/places/{{placeId}}/stats?from={{now-30d}}&to={{now+30d}}
+GET {{base}}/api/places/{{placeId}}/stats?from={{from}}&to={{to}}
 Authorization: Bearer {{tokenHost}}
 
 ### -------------------------------------------------------------------
-### USERS – LISTAR RESERVAS DEL USUARIO (PAGE, opcional body filtro)
+### USERS – LISTAR RESERVAS DEL USUARIO (paginado y filtro por query)
 ### -------------------------------------------------------------------
 # @name UserBookings
-GET {{base}}/api/users/{{userId}}/bookings/{{page0}}
+GET {{base}}/api/users/{{userId}}/bookings?page={{page0}}&size={{size10}}&state=PENDING
 Authorization: Bearer {{tokenUser}}
-Content-Type: application/json
-
-{
-  "state": "PENDING"
-}
 
 ### -------------------------------------------------------------------
-### USERS – LISTAR LUGARES DEL HOST (PAGE)
+### USERS – LISTAR LUGARES DEL HOST (paginado)
 ### -------------------------------------------------------------------
 # @name HostPlaces
-GET {{base}}/api/users/{{hostId}}/places/host/{{page0}}
+GET {{base}}/api/users/{{hostId}}/places/host?page={{page0}}&size={{size10}}
 Authorization: Bearer {{tokenHost}}
