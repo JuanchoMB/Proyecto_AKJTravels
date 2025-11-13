@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public record UserDetailDTO(
         String id,
         String name,
-        String lastName,      // ⬅️ NUEVO
+        String lastName,
         String photoUrl,
         LocalDateTime createdAt
 ) {}

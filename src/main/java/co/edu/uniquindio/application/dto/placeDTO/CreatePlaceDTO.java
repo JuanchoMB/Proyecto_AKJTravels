@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.dto.placeDTO;
 import co.edu.uniquindio.application.model.enums.PlaceType;
 import co.edu.uniquindio.application.model.enums.Services;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import org.hibernate.validator.constraints.Length;
 import java.util.List;
@@ -14,7 +15,7 @@ public record CreatePlaceDTO(@NotBlank(message = "El título no puede estar vac�
                              @NotBlank @Size(min = 20, max = 500, message = "La descripción debe tener entre 20 y 500 caracteres")
                              String description,
                              @NotNull @Positive double price,
-                             @NotEmpty @Size(min = 1, max = 10) List<String> picsUrl,
+                             @JsonProperty("pics_url") @NotEmpty @Size(min = 1, max = 10) List<String> picsUrl,
                              @NotNull(message = "el tipo de alojamiento es obligatorio")
                              PlaceType placeType,
                              @Min(1) @Max(60) int capacity,
