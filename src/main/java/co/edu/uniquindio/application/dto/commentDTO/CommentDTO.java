@@ -7,6 +7,8 @@ public record CommentDTO(String id,
                          String comment,
                          LocalDateTime commentDate,
                          int rating,
-                         UserCommentDTO user
+                         UserCommentDTO user,
+
+                         String reply
 ) {
 }
