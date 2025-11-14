@@ -15,14 +15,19 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CommentController {
 
-    private final ReplyService replyService;
-    private final CurrentUserService currentUserService;
+  private final ReplyService replyService;
+  private final CurrentUserService currentUserService;
 
-    @PostMapping("/{commentId}/reply/{idUser}")
-    public ResponseEntity<ResponseDTO<String>> reply(@PathVariable String idUser, @PathVariable String commentId, @Valid @RequestBody ReplyDTO replyDTO) throws Exception{
-        String userId = currentUserService.getCurrentUser();
-        replyService.create(idUser, commentId, replyDTO);
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseDTO<>(false, "respuesta a comentario exitosa"));
-    }
+  @PostMapping("/{commentId}/reply")
+  public ResponseEntity<ResponseDTO<String>> reply(
+    @PathVariable String commentId,
+    @Valid @RequestBody ReplyDTO replyDTO) throws Exception {
+
+    String userId = currentUserService.getCurrentUser();
+    replyService.create(userId, commentId, replyDTO);
+
+    return ResponseEntity
+      .status(HttpStatus.OK)
+      .body(new ResponseDTO<>(false, "respuesta a comentario exitosa"));
+  }
 }
-//master 3
