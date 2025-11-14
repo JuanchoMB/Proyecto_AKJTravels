@@ -2,6 +2,7 @@ package co.edu.uniquindio.application.repositories;
 
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.model.Booking;
+import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +24,7 @@ public interface BookingRepository extends JpaRepository<Booking, String>, JpaSp
     // ¿Existen reservas futuras activas? (para impedir eliminar Place)
     boolean existsByPlace_IdAndCheckInAfterAndBookingStateIn(
             String placeId, LocalDateTime checkIn, java.util.List<co.edu.uniquindio.application.model.enums.BookingState> states);
-
+    List<Booking> findByUser(User user);
     // Conteo de reservas por lugar en un rango (usamos checkIn/checkOut)
     @org.springframework.data.jpa.repository.Query("""
     SELECT COUNT(b)

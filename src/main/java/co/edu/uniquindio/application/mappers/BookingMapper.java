@@ -3,6 +3,7 @@ package co.edu.uniquindio.application.mappers;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.UserBookingDTO;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.User;
@@ -26,9 +27,21 @@ public interface BookingMapper {
 
     // 3) Creación: AQUÍ sí van las anotaciones
     @Mapping(target = "id", expression = "java(java.util.UUID.randomUUID().toString())")
-    @Mapping(target = "bookingState", constant = "PENDING") // o tu estado por defecto
+    @Mapping(target = "bookingState", constant = "PENDING") // estado por defecto
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(source = "place", target = "place")
     @Mapping(source = "user", target = "user")
     Booking toEntity(CreateBookingDTO createBookingDTO, Place place, User user);
+
+    // 4) Vista para "Mis reservas" (usuario)
+    @Mapping(target = "placeId", source = "place.id")
+    @Mapping(target = "placeTitle", source = "place.title")
+    @Mapping(target = "capacity", source = "place.capacity")
+    @Mapping(
+            target = "mainImage",
+            expression = "java( booking.getPlace().getPicsUrl() != null "
+                    + "&& !booking.getPlace().getPicsUrl().isEmpty() "
+                    + "? booking.getPlace().getPicsUrl().get(0) : null )"
+    )
+    UserBookingDTO toUserBookingDTO(Booking booking);
 }

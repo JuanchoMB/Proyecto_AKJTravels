@@ -4,6 +4,7 @@ import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.UserBookingDTO;
 import co.edu.uniquindio.application.exceptions.*;
 import co.edu.uniquindio.application.mappers.BookingMapper;
 import co.edu.uniquindio.application.model.Booking;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -37,31 +39,33 @@ public class BookingServiceImpl implements BookingService {
     private final CurrentUserServiceImpl currentUserService;
 
     @Override
-    public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception{
+    public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception {
 
         if (!createBookingDTO.checkIn().plusDays(1).isBefore(createBookingDTO.checkOut())
                 && !createBookingDTO.checkIn().plusDays(1).isEqual(createBookingDTO.checkOut())) {
             throw new BadRequestException("La reserva debe ser mínimo de 1 noche");
         }
 
-        if(createBookingDTO.checkIn().isBefore(LocalDateTime.now())){
+        if (createBookingDTO.checkIn().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("el checkIn es invalido");
         }
 
-        if(createBookingDTO.checkIn().isAfter(createBookingDTO.checkOut())) {
+        if (createBookingDTO.checkIn().isAfter(createBookingDTO.checkOut())) {
             throw new BadRequestException("Datos incorrectos o la fecha de checkIn está despues de la fecha de check Out");
         }
 
         boolean solapa = bookingRepository.existsOverlappingBooking(id, createBookingDTO.checkIn(), createBookingDTO.checkOut());
-        if(solapa){
+        if (solapa) {
             throw new ValueConflictException("fechas no disponibles");
         }
 
         Place place = placeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el alojamiento"));
-      if (place.getState() != State.ACTIVE) {
-        throw new BadRequestException("El alojamiento no está activo");
-      }
+
+        if (place.getState() != State.ACTIVE) {
+            throw new BadRequestException("El alojamiento no está activo");
+        }
+
         // === Validación de capacidad ===
         Integer guests = createBookingDTO.guest_number();
 
@@ -76,7 +80,6 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getBookingState() == null) booking.setBookingState(BookingState.PENDING);
 
         bookingRepository.save(booking);
-
     }
 
     @Override
@@ -86,24 +89,21 @@ public class BookingServiceImpl implements BookingService {
             throw new ResourceNotFoundException("No existe esta reserva");
         }
 
-
-        if(!Objects.equals(currentUserService.getCurrentUser(), booking.get().getUser().getId())) {
+        if (!Objects.equals(currentUserService.getCurrentUser(), booking.get().getUser().getId())) {
             throw new ForbiddenException("No te pertenece esta reserva");
         }
 
-        if(booking.get().getBookingState() == BookingState.PENDING
-                || booking.get().getBookingState() == BookingState.CONFIRMED){
+        if (booking.get().getBookingState() == BookingState.PENDING
+                || booking.get().getBookingState() == BookingState.CONFIRMED) {
             LocalDateTime checkIn = booking.get().getCheckIn();
             LocalDateTime now = LocalDateTime.now();
-            if(now.isBefore(checkIn.minusHours(48))){
+            if (now.isBefore(checkIn.minusHours(48))) {
                 booking.get().setBookingState(BookingState.CANCELED);
                 bookingRepository.save(booking.get());
-            }
-            else{
+            } else {
                 throw new ValueConflictException("solo puedes cancelar una reserva 48 horas antes de la fecha de check in");
             }
-        }
-        else {
+        } else {
             throw new UnauthorizedException("no puedes cancelar esta reserva");
         }
     }
@@ -187,6 +187,19 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.findAll(spec)
                 .stream()
                 .map(bookingMapper::toBookingListItemDTO)
+                .toList();
+    }
+
+    // 👇 NUEVOo: "Mis reservas" para el usuario (UserBookingDTO)
+    @Override
+    public List<UserBookingDTO> listUserBookings(String userId) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario"));
+
+        List<Booking> bookings = bookingRepository.findByUser(user);
+
+        return bookings.stream()
+                .map(bookingMapper::toUserBookingDTO)
                 .toList();
     }
 }

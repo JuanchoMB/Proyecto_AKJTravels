@@ -1,9 +1,6 @@
 package co.edu.uniquindio.application.services;
 
-import co.edu.uniquindio.application.dto.bookingDTO.BookingDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
-import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
+import co.edu.uniquindio.application.dto.bookingDTO.*;
 import co.edu.uniquindio.application.model.enums.BookingState;
 
 import java.time.LocalDateTime;
@@ -23,4 +20,6 @@ public interface BookingService {
                                          LocalDateTime from,
                                          LocalDateTime to,
                                          Integer guests) throws Exception;
+
+    List<UserBookingDTO> listUserBookings(String userId) throws Exception;
 }
