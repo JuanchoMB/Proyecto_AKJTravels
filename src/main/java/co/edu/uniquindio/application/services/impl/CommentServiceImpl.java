@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
             throw new ResourceNotFoundException("no se encontraron comentarios");
         }
         return list.stream()
-                .map(listCommentsMapper::ToCommentDTO)
+                .map(listCommentsMapper::toCommentDTO)
                 .toList();
 
     }
