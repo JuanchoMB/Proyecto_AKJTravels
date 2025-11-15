@@ -39,9 +39,9 @@ public interface BookingMapper {
     @Mapping(target = "capacity", source = "place.capacity")
     @Mapping(
             target = "mainImage",
-            expression = "java( booking.getPlace().getPicsUrl() != null "
-                    + "&& !booking.getPlace().getPicsUrl().isEmpty() "
-                    + "? booking.getPlace().getPicsUrl().get(0) : null )"
+            expression = "java( booking.getPlace().getPics_url() != null "
+                    + "&& !booking.getPlace().getPics_url().isEmpty() "
+                    + "? booking.getPlace().getPics_url().get(0) : null )"
     )
     UserBookingDTO toUserBookingDTO(Booking booking);
 }
