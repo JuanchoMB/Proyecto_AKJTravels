@@ -33,15 +33,17 @@ public interface BookingMapper {
     @Mapping(source = "user", target = "user")
     Booking toEntity(CreateBookingDTO createBookingDTO, Place place, User user);
 
-    // 4) Vista para "Mis reservas" (usuario)
     @Mapping(target = "placeId", source = "place.id")
     @Mapping(target = "placeTitle", source = "place.title")
     @Mapping(target = "capacity", source = "place.capacity")
     @Mapping(
             target = "mainImage",
-            expression = "java( booking.getPlace().getPicsUrl() != null "
-                    + "&& !booking.getPlace().getPicsUrl().isEmpty() "
-                    + "? booking.getPlace().getPicsUrl().get(0) : null )"
+            expression = "java( " +
+                    "booking.getPlace() != null && " +
+                    "booking.getPlace().getPics_url() != null && " +
+                    "!booking.getPlace().getPics_url().isEmpty() " +
+                    "? booking.getPlace().getPics_url().get(0) : null " +
+                    ")"
     )
     UserBookingDTO toUserBookingDTO(Booking booking);
 }

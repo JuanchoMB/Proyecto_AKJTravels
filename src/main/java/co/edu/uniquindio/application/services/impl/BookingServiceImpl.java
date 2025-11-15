@@ -5,18 +5,24 @@ import co.edu.uniquindio.application.dto.bookingDTO.BookingListItemDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.CreateBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.SearchBookingDTO;
 import co.edu.uniquindio.application.dto.bookingDTO.UserBookingDTO;
-import co.edu.uniquindio.application.exceptions.*;
+import co.edu.uniquindio.application.dto.externalServiceDTO.SendEmailDTO;
+import co.edu.uniquindio.application.exceptions.BadRequestException;
+import co.edu.uniquindio.application.exceptions.ForbiddenException;
+import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
+import co.edu.uniquindio.application.exceptions.UnauthorizedException;
+import co.edu.uniquindio.application.exceptions.ValueConflictException;
 import co.edu.uniquindio.application.mappers.BookingMapper;
 import co.edu.uniquindio.application.model.Booking;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
 import co.edu.uniquindio.application.model.enums.BookingState;
 import co.edu.uniquindio.application.model.enums.State;
-import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.BookingRepository;
+import co.edu.uniquindio.application.repositories.PlaceRepository;
 import co.edu.uniquindio.application.repositories.UserRepository;
 import co.edu.uniquindio.application.repositories.spec.BookingSpecifications;
 import co.edu.uniquindio.application.services.BookingService;
+import co.edu.uniquindio.application.services.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
@@ -26,7 +32,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +45,7 @@ public class BookingServiceImpl implements BookingService {
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
     private final CurrentUserServiceImpl currentUserService;
+    private final EmailService emailService;
 
     @Override
     public void create(String id, String userId, CreateBookingDTO createBookingDTO) throws Exception {
@@ -66,9 +75,8 @@ public class BookingServiceImpl implements BookingService {
             throw new BadRequestException("El alojamiento no está activo");
         }
 
-        // === Validación de capacidad ===
+        // Validación de capacidad
         Integer guests = createBookingDTO.guest_number();
-
         if (guests > place.getCapacity()) {
             throw new BadRequestException("Excede capacidad del lugar");
         }
@@ -77,29 +85,72 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario"));
 
         Booking booking = bookingMapper.toEntity(createBookingDTO, place, user);
-        if (booking.getBookingState() == null) booking.setBookingState(BookingState.PENDING);
+        if (booking.getBookingState() == null) {
+            booking.setBookingState(BookingState.PENDING);
+        }
 
         bookingRepository.save(booking);
     }
 
     @Override
     public void delete(String id) throws Exception {
-        Optional<Booking> booking = bookingRepository.findById(id);
-        if (booking.isEmpty()) {
+        Optional<Booking> bookingOpt = bookingRepository.findById(id);
+        if (bookingOpt.isEmpty()) {
             throw new ResourceNotFoundException("No existe esta reserva");
         }
 
-        if (!Objects.equals(currentUserService.getCurrentUser(), booking.get().getUser().getId())) {
+        Booking booking = bookingOpt.get();
+
+        // Solo el dueño de la reserva puede cancelarla
+        if (!Objects.equals(currentUserService.getCurrentUser(), booking.getUser().getId())) {
             throw new ForbiddenException("No te pertenece esta reserva");
         }
 
-        if (booking.get().getBookingState() == BookingState.PENDING
-                || booking.get().getBookingState() == BookingState.CONFIRMED) {
-            LocalDateTime checkIn = booking.get().getCheckIn();
+        // Solo se pueden cancelar PENDING o CONFIRMED
+        if (booking.getBookingState() == BookingState.PENDING
+                || booking.getBookingState() == BookingState.CONFIRMED) {
+
+            LocalDateTime checkIn = booking.getCheckIn();
             LocalDateTime now = LocalDateTime.now();
+
+            // Regla: solo se puede cancelar si faltan al menos 48 horas
             if (now.isBefore(checkIn.minusHours(48))) {
-                booking.get().setBookingState(BookingState.CANCELED);
-                bookingRepository.save(booking.get());
+                booking.setBookingState(BookingState.CANCELED);
+                bookingRepository.save(booking);
+
+                // Notificar al anfitrión
+                try {
+                    User host = booking.getPlace().getUser();
+                    String hostEmail = host.getEmail();
+
+                    String subject = "Reserva cancelada en AKJTravel";
+                    String body = """
+                            Hola %s,
+
+                            El usuario %s ha cancelado una reserva para tu alojamiento "%s".
+
+                            Fechas:
+                            - Check-in: %s
+                            - Check-out: %s
+                            - Huéspedes: %d
+
+                            Estado actual: CANCELADA.
+
+                            """.formatted(
+                            host.getName(),
+                            booking.getUser().getName(),
+                            booking.getPlace().getTitle(),
+                            booking.getCheckIn(),
+                            booking.getCheckOut(),
+                            booking.getGuest_number()
+                    );
+
+                    emailService.sendMail(new SendEmailDTO(hostEmail, subject, body));
+                } catch (Exception e) {
+                    // No romper la cancelación si el correo falla
+                    e.printStackTrace();
+                }
+
             } else {
                 throw new ValueConflictException("solo puedes cancelar una reserva 48 horas antes de la fecha de check in");
             }
@@ -190,7 +241,6 @@ public class BookingServiceImpl implements BookingService {
                 .toList();
     }
 
-    // 👇 NUEVOo: "Mis reservas" para el usuario (UserBookingDTO)
     @Override
     public List<UserBookingDTO> listUserBookings(String userId) throws Exception {
         User user = userRepository.findById(userId)
