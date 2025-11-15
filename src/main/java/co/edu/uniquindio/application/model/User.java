@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user") // opcional pero recomendado, `user` es palabra reservada en algunos motores
+@Table(name = "users") // opcional pero recomendado, `user` es palabra reservada en algunos motores
 public class User {
 
     @Id
