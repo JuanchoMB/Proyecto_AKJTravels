@@ -1,6 +1,7 @@
 package co.edu.uniquindio.application.controllers;
 
 import co.edu.uniquindio.application.model.Place;
+import co.edu.uniquindio.application.services.CurrentUserService;
 import co.edu.uniquindio.application.services.FavoriteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,52 +17,57 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/favorites")
 public class FavoriteController {
 
-    private final FavoriteService favoriteService;
-    public FavoriteController(FavoriteService favoriteService) {
-        this.favoriteService = favoriteService;
-    }
+  private final FavoriteService favoriteService;
+  private final CurrentUserService currentUserService;
 
+  public FavoriteController(FavoriteService favoriteService,
+                            CurrentUserService currentUserService) {
+    this.favoriteService = favoriteService;
+    this.currentUserService = currentUserService;
+  }
 
-    /** Marca un lugar como favorito (idempotente). */
+  /** Marca un lugar como favorito (idempotente). */
+  @PostMapping("/{placeId}")
+  @PreAuthorize("hasRole('USER')") // ⚠️ si tu rol de huésped es GUEST, cámbialo a hasRole('GUEST')
+  public ResponseEntity<Void> add(@PathVariable String placeId) throws Exception {
+    String userId = currentUserService.getCurrentUser(); // ← ID consistente con el resto del proyecto
+    favoriteService.addFavorite(userId, placeId);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
 
-    @PostMapping("/{placeId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> add(Authentication auth, @PathVariable String placeId) {
-        favoriteService.addFavorite(auth.getName(), placeId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
+  /** Quita un lugar de favoritos (idempotente). */
+  @DeleteMapping("/{placeId}")
+  @PreAuthorize("hasRole('USER')")
+  public ResponseEntity<Void> remove(@PathVariable String placeId) throws Exception {
+    String userId = currentUserService.getCurrentUser();
+    favoriteService.removeFavorite(userId, placeId);
+    return ResponseEntity.noContent().build();
+  }
 
-    /** Quita un lugar de favoritos (idempotente). */
-    @DeleteMapping("/{placeId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> remove(Authentication auth, @PathVariable String placeId) {
-        favoriteService.removeFavorite(auth.getName(), placeId);
-        return ResponseEntity.noContent().build();
-    }
+  /** Lista paginada de mis favoritos (devuelve Place directamente). */
+  @GetMapping("/me")
+  @PreAuthorize("hasRole('USER')")
+  public ResponseEntity<Page<Place>> listMyFavorites(
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size
+  ) throws Exception {
+    String userId = currentUserService.getCurrentUser();
+    Pageable pageable = PageRequest.of(page, size);
+    Page<Place> result = favoriteService.listMyFavorites(userId, pageable);
+    return ResponseEntity.ok(result);
+  }
 
-    /** Lista paginada de mis favoritos (devuelve Place directamente). */
-    @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Page<Place>> listMyFavorites(
-            Authentication auth,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Place> result = favoriteService.listMyFavorites(auth.getName(), pageable);
-        return ResponseEntity.ok(result);
-    }
+  /** ¿Es favorito este place para mí? */
+  @GetMapping("/me/{placeId}")
+  @PreAuthorize("hasRole('USER')")
+  public ResponseEntity<Boolean> isMyFavorite(@PathVariable String placeId) throws Exception {
+    String userId = currentUserService.getCurrentUser();
+    return ResponseEntity.ok(favoriteService.isMyFavorite(userId, placeId));
+  }
 
-    /** ¿Es favorito este place para mí? */
-    @GetMapping("/me/{placeId}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Boolean> isMyFavorite(Authentication auth, @PathVariable String placeId) {
-        return ResponseEntity.ok(favoriteService.isMyFavorite(auth.getName(), placeId));
-    }
-
-    /** Conteo de favoritos por Place (puedes dejarlo público o restringirlo si quieres). */
-    @GetMapping("/count/{placeId}")
-    public ResponseEntity<Long> count(@PathVariable String placeId) {
-        return ResponseEntity.ok(favoriteService.countFavoritesByPlace(placeId));
-    }
+  /** Conteo de favoritos por Place. */
+  @GetMapping("/count/{placeId}")
+  public ResponseEntity<Long> count(@PathVariable String placeId) {
+    return ResponseEntity.ok(favoriteService.countFavoritesByPlace(placeId));
+  }
 }
