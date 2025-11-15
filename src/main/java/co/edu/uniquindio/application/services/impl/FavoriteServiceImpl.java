@@ -1,5 +1,6 @@
 package co.edu.uniquindio.application.services.impl;
 
+import co.edu.uniquindio.application.exceptions.ResourceNotFoundException;
 import co.edu.uniquindio.application.model.Favorite;
 import co.edu.uniquindio.application.model.Place;
 import co.edu.uniquindio.application.model.User;
@@ -19,56 +20,80 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class FavoriteServiceImpl implements FavoriteService {
 
-    private final FavoriteRepository favoriteRepository;
-    private final UserRepository userRepository;
-    private final PlaceRepository placeRepository;
+  private final FavoriteRepository favoriteRepository;
+  private final UserRepository userRepository;
+  private final PlaceRepository placeRepository;
 
-    @Override
-    public void addFavorite(String userId, String placeId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+  @Override
+  @Transactional
+  public void addFavorite(String userId, String placeId)  {
 
-        Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new EntityNotFoundException("Lugar no encontrado"));
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
 
-        if (favoriteRepository.existsByUserAndPlace(user, place)) {
-            throw new IllegalStateException("Ya está en favoritos");
-        }
+    Place place = placeRepository.findById(placeId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
 
-        favoriteRepository.save(
-                Favorite.builder().user(user).place(place).build()
-        );
+    // Si ya existe el favorito, no hacemos nada (idempotente)
+    if (favoriteRepository.existsByUserAndPlace(user, place)) {
+      return;
     }
 
-    @Override
-    public void removeFavorite(String userId, String placeId) {
-        User user = userRepository.getReferenceById(userId);
-        Place place = placeRepository.getReferenceById(placeId);
+    Favorite favorite = new Favorite();
+    favorite.setUser(user);
+    favorite.setPlace(place);
+    // Si tu entidad tiene más campos (createdAt, id manual, etc.), setéalos aquí
 
-        favoriteRepository.findByUserAndPlace(user, place)
-                .ifPresent(favoriteRepository::delete);
-    }
+    favoriteRepository.save(favorite);
+  }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<Place> listMyFavorites(String userId, Pageable pageable) {
-        User user = userRepository.getReferenceById(userId);
-        return favoriteRepository.findByUser(user, pageable)
-                .map(Favorite::getPlace);
-    }
+  @Override
+  @Transactional
+  public void removeFavorite(String userId, String placeId) {
 
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isMyFavorite(String userId, String placeId) {
-        User user = userRepository.getReferenceById(userId);
-        Place place = placeRepository.getReferenceById(placeId);
-        return favoriteRepository.existsByUserAndPlace(user, place);
-    }
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
 
-    @Override
-    @Transactional(readOnly = true)
-    public long countFavoritesByPlace(String placeId) {
-        Place place = placeRepository.getReferenceById(placeId);
-        return favoriteRepository.countByPlace(place);
-    }
+    Place place = placeRepository.findById(placeId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
+
+    favoriteRepository.findByUserAndPlace(user, place)
+      .ifPresent(favoriteRepository::delete);
+    // Si no existe, simplemente no pasa nada (también idempotente)
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isMyFavorite(String userId, String placeId)  {
+
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
+
+    Place place = placeRepository.findById(placeId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
+
+    return favoriteRepository.existsByUserAndPlace(user, place);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long countFavoritesByPlace(String placeId)  {
+
+    Place place = placeRepository.findById(placeId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el alojamiento"));
+
+    return favoriteRepository.countByPlace(place);
+  }
+
+  @Override
+  public Page<Place> listMyFavorites(String userId, Pageable pageable) {
+
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario"));
+
+    Page<Favorite> favPage = favoriteRepository.findByUser(user, pageable);
+
+    // devolvemos solo los Place asociados a cada Favorite
+    return favPage.map(Favorite::getPlace);
+  }
 }

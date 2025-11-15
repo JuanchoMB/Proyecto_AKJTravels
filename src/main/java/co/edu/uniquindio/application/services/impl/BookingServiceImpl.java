@@ -190,7 +190,7 @@ public class BookingServiceImpl implements BookingService {
                 .toList();
     }
 
-    // 👇 NUEVOo: "Mis reservas" para el usuario (UserBookingDTO)
+    //NUEVOo: "Mis reservas" para el usuario (UserBookingDTO)
     @Override
     public List<UserBookingDTO> listUserBookings(String userId) throws Exception {
         User user = userRepository.findById(userId)
